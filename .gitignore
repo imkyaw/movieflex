@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs / OS
+logs/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test / coverage
+coverage/
+
+# Prisma / local DB
+*.db
+*.db-journal
+
+# Uploads / temp
+tmp/
+temp/
+uploads/
+
+# Elastic Beanstalk
+.elasticbeanstalk/
+*.zip
+
+# Misc
+.cache/
+*.pem
