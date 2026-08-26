@@ -1,0 +1,52 @@
+name: movieflex
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: npm run dev --workspace=server
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      CLIENT_ORIGIN: http://localhost:5173
+      DATABASE_URL: file:./dev.db
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - server_dependencies:/workspace/node_modules
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    init: true
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: npm run dev --workspace=client -- --host 0.0.0.0
+    environment:
+      VITE_API_BASE_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/workspace
+      - client_dependencies:/workspace/node_modules
+    depends_on:
+      server:
+        condition: service_healthy
+    init: true
+
+volumes:
+  server_dependencies:
+  client_dependencies:

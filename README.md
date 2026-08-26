@@ -37,6 +37,39 @@ npm run dev:client
 
 Health check: `GET http://localhost:3000/health`
 
+## Team setup with Docker (recommended)
+
+This gives every team member the same Node.js 20 environment. Install Docker Desktop, clone the repository, and run:
+
+```bash
+git clone https://github.com/imkyaw/movieflex.git
+cd movieflex
+docker compose up --build
+```
+
+Open the client at `http://localhost:5173` and the API health check at `http://localhost:3000/health`. Source files are mounted into both containers, so edits reload automatically.
+
+Stop the containers with `Ctrl+C`, then run `docker compose down`. If dependencies become stale after a package change, run `docker compose down --volumes` and start again.
+
+The containers are for consistent local development only. The required cloud architecture remains physically separated: React through CloudFront/S3, Express through Elastic Beanstalk, PostgreSQL through RDS, Cognito for identity, and a private S3 bucket for posters.
+
+### Four-person Git workflow
+
+Each member should work on their own branch and open a pull request. Do not rebase, squash, or force-push because the assignment requires visible contribution history.
+
+```bash
+git switch main
+git pull
+git switch -c feature/<member-name>-<task>
+
+# after making and checking changes
+git add <files>
+git commit -m "feat(scope): describe the change"
+git push -u origin feature/<member-name>-<task>
+```
+
+Merge pull requests with ordinary merge commits. Give all four members collaborator access under GitHub repository **Settings → Collaborators**.
+
 ## Scripts
 
 | Command | Description |
@@ -45,6 +78,9 @@ Health check: `GET http://localhost:3000/health`
 | `npm run dev:client` | Start Vite dev server |
 | `npm run lint` | ESLint (flat config) |
 | `npm run build` | Build server and client |
+| `npm run docker:up` | Build and start the development containers |
+| `npm run docker:down` | Stop the development containers |
+| `npm run docker:clean` | Stop containers and reset dependency volumes |
 
 ## Phase status
 

@@ -12,7 +12,10 @@
     "dev:client": "npm run dev --workspace=client",
     "build": "npm run build --workspace=server && npm run build --workspace=client",
     "lint": "eslint .",
-    "start:server": "npm run start --workspace=server"
+    "start:server": "npm run start --workspace=server",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:clean": "docker compose down --volumes"
   },
   "engines": {
     "node": ">=20"
