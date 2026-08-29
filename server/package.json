@@ -7,9 +7,19 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prisma:generate": "prisma generate --schema prisma/sqlite/schema.prisma",
+    "prisma:generate:postgres": "prisma generate --schema prisma/postgres/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema prisma/sqlite/schema.prisma",
+    "db:migrate:postgres": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
+    "db:seed": "prisma db seed --schema prisma/sqlite/schema.prisma",
+    "db:reset": "prisma migrate reset --schema prisma/sqlite/schema.prisma"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "6.19.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0"
@@ -18,6 +28,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.2.0",
+    "prisma": "6.19.3",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   }

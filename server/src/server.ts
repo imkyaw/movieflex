@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { env } from './config/env.js';
+import { prisma } from './db/prisma.js';
 
 const app = createApp();
 
@@ -11,7 +12,8 @@ const server = app.listen(env.PORT, () => {
 
 function shutdown(signal: string) {
   console.log(`[movieflex] ${signal} received, shutting down`);
-  server.close(() => {
+  server.close(async () => {
+    await prisma.$disconnect();
     process.exit(0);
   });
 }

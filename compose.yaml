@@ -5,7 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: npm run dev --workspace=server
+    command: >-
+      sh -c "npm run prisma:generate --workspace=server &&
+      npx prisma migrate deploy --schema server/prisma/sqlite/schema.prisma &&
+      npm run dev --workspace=server"
     environment:
       NODE_ENV: development
       PORT: 3000

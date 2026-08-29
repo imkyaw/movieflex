@@ -37,6 +37,30 @@ npm run dev:client
 
 Health check: `GET http://localhost:3000/health`
 
+## Database
+
+Local development uses SQLite; production uses PostgreSQL on Amazon RDS. The schemas and migration histories are intentionally separate because Prisma datasource providers cannot be selected through an environment variable:
+
+```text
+server/prisma/sqlite/    # local development and smoke tests
+server/prisma/postgres/  # production deployment to RDS
+```
+
+Set up and seed the local database from the repository root:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+The seed creates one local admin identity, one local user identity, and 15 movies. These identities contain no passwords; authentication will be delegated to Cognito in Phase 3.
+
+Docker applies committed SQLite migrations automatically when the server starts. Seed once with:
+
+```bash
+docker compose exec server npm run db:seed --workspace=server
+```
+
 ## Team setup with Docker (recommended)
 
 This gives every team member the same Node.js 20 environment. Install Docker Desktop, clone the repository, and run:
@@ -58,7 +82,7 @@ The containers are for consistent local development only. The required cloud arc
 Each member should work on their own branch and open a pull request. Do not rebase, squash, or force-push because the assignment requires visible contribution history.
 
 ```bash
-git switch main
+git switch master
 git pull
 git switch -c feature/<member-name>-<task>
 
@@ -78,6 +102,9 @@ Merge pull requests with ordinary merge commits. Give all four members collabora
 | `npm run dev:client` | Start Vite dev server |
 | `npm run lint` | ESLint (flat config) |
 | `npm run build` | Build server and client |
+| `npm run db:migrate` | Create/apply a local SQLite development migration |
+| `npm run db:seed` | Load the local users and 15-movie catalogue |
+| `npm run db:reset` | Rebuild and reseed the local SQLite database |
 | `npm run docker:up` | Build and start the development containers |
 | `npm run docker:down` | Stop the development containers |
 | `npm run docker:clean` | Stop containers and reset dependency volumes |
@@ -85,7 +112,7 @@ Merge pull requests with ordinary merge commits. Give all four members collabora
 ## Phase status
 
 - [x] Phase 1 — Skeleton
-- [ ] Phase 2 — Data layer
+- [x] Phase 2 — Data layer
 - [ ] Phase 3 — Auth
 - [ ] Phase 4 — Catalogue + S3
 - [ ] Phase 5 — Orders

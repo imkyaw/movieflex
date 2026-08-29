@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum MovieStatus {
+  ACTIVE
+  DISCONTINUED
+}
+
+enum OrderStatus {
+  PAID
+  CANCELLED
+}
+
+model User {
+  userId     String   @id @default(uuid()) @db.Uuid
+  cognitoSub String   @unique
+  email      String   @unique
+  name       String
+  role       UserRole @default(USER)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  orders     Order[]
+}
+
+model Movie {
+  movieId        String        @id @default(uuid()) @db.Uuid
+  title          String
+  description    String
+  genre          String
+  director       String
+  releaseDate    DateTime      @db.Date
+  classification String
+  runtimeMinutes Int
+  priceCents     Int
+  stock          Int
+  posterKey      String?
+  status         MovieStatus   @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @db.Timestamptz
+  orderDetails   OrderDetail[]
+
+  @@index([genre])
+  @@index([title])
+  @@index([status])
+}
+
+model Order {
+  orderId    String        @id @default(uuid()) @db.Uuid
+  userId     String        @db.Uuid
+  totalCents Int
+  status     OrderStatus   @default(PAID)
+  createdAt  DateTime      @default(now()) @db.Timestamptz
+  user       User          @relation(fields: [userId], references: [userId], onDelete: Restrict)
+  details    OrderDetail[]
+
+  @@index([userId])
+}
+
+model OrderDetail {
+  id             String @id @default(uuid()) @db.Uuid
+  orderId        String @db.Uuid
+  movieId        String @db.Uuid
+  title          String
+  quantity       Int
+  unitPriceCents Int
+  order          Order  @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
+  movie          Movie  @relation(fields: [movieId], references: [movieId], onDelete: Restrict)
+
+  @@index([orderId])
+}
