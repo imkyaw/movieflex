@@ -55,6 +55,20 @@ npm run db:seed
 
 The seed creates one local admin identity, one local user identity, and 15 movies. These identities contain no passwords; authentication will be delegated to Cognito in Phase 3.
 
+## Authentication
+
+The API exposes:
+
+```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+GET  /api/v1/auth/me
+```
+
+Development uses the in-memory local identity provider selected by `IDENTITY_PROVIDER=local`. Register an account through the UI after each server restart; an existing local user record can be reactivated this way without changing its role. Password hashes exist only in memory and are never stored in the application database or committed to Git.
+
+Production uses `IDENTITY_PROVIDER=cognito` with `AWS_REGION`, `COGNITO_USER_POOL_ID`, and `COGNITO_CLIENT_ID`. The Elastic Beanstalk instance role supplies AWS credentials; access keys must not be placed in environment files.
+
 Docker applies committed SQLite migrations automatically when the server starts. Seed once with:
 
 ```bash
@@ -113,7 +127,7 @@ Merge pull requests with ordinary merge commits. Give all four members collabora
 
 - [x] Phase 1 — Skeleton
 - [x] Phase 2 — Data layer
-- [ ] Phase 3 — Auth
+- [x] Phase 3 — Auth and login/register UI
 - [ ] Phase 4 — Catalogue + S3
 - [ ] Phase 5 — Orders
 - [ ] Phase 6 — Docs + client features
