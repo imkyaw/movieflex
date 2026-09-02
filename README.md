@@ -4,7 +4,7 @@ Three-tier cloud movie store for INFS803 Cloud Computing (Option B).
 
 | Layer | Stack |
 |---|---|
-| Client | React 18 + Vite + TypeScript |
+| Client | React 18 + Vite + TypeScript + Tailwind CSS |
 | Backend | Node.js 20 + Express 5 + TypeScript (ESM) |
 | Database | SQLite (local) → PostgreSQL on AWS RDS (prod) |
 
