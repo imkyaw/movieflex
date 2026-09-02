@@ -44,7 +44,7 @@ input:focus { border-color: #6891ef; background: white; box-shadow: 0 0 0 3px rg
 .primary-button:hover { background: #1f57d4; }
 .secondary-button { border: 1px solid #dfe5ee; color: #344054; background: white; }
 .compact { min-height: 36px; padding: 0 14px; }
-.store-shell { min-height: 100vh; background: #f6f8fb; }
+.store-shell { display: flex; min-height: 100vh; flex-direction: column; background: #f6f8fb; }
 .store-header { display: grid; grid-template-columns: auto minmax(240px, 430px) 1fr; align-items: center; gap: 18px; min-height: 72px; padding: 0 32px; border-bottom: 1px solid #e8ecf2; background: white; }
 .wordmark { padding: 0; border: 0; color: #172033; background: none; font-size: 19px; font-weight: 850; letter-spacing: -0.04em; }
 .search-box { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border: 1px solid #dfe5ee; border-radius: 8px; color: #98a2b3; background: #f8fafc; }
@@ -55,8 +55,8 @@ input:focus { border-color: #6891ef; background: white; box-shadow: 0 0 0 3px rg
 .genre-bar { display: flex; gap: 8px; overflow-x: auto; padding: 16px 32px; border-bottom: 1px solid #e8ecf2; background: white; }
 .genre-bar button { flex: 0 0 auto; min-height: 36px; padding: 0 16px; border: 1px solid #e4e9f2; border-radius: 999px; color: #667085; background: white; font-size: 12px; }
 .genre-bar button.active { border-color: #2864e8; color: white; background: #2864e8; font-weight: 750; }
-.catalog-content { min-height: 530px; padding: 24px 32px 38px; }
-.movie-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; max-width: 1240px; margin: 0 auto; }
+.catalog-content { width: 100%; flex: 1; padding: 24px 32px 38px; }
+.movie-grid { display: grid; width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; max-width: 1500px; margin: 0 auto; }
 .movie-card { overflow: hidden; border: 1px solid #e4e9f2; border-radius: 12px; background: white; box-shadow: 0 5px 18px rgba(25, 45, 80, 0.04); }
 .poster-placeholder { display: grid; place-items: center; aspect-ratio: 1.52; color: #8e99a9; background: #d8dde4; font-size: 28px; }
 .poster-placeholder img { width: 100%; height: 100%; object-fit: cover; }
