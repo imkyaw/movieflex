@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 type Mode = 'login' | 'register';
 
-export function AuthPage() {
+export function AuthPage({ onBack }: { onBack?: () => void }) {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [firstName, setFirstName] = useState('');
@@ -42,6 +42,7 @@ export function AuthPage() {
   return (
     <main className="auth-shell">
       <section className="auth-card" aria-labelledby="auth-title">
+        {onBack && <button className="back-link" type="button" onClick={onBack}>← Back to catalogue</button>}
         <div className="brand-mark" aria-hidden="true">M</div>
         <h1 id="auth-title">MovieFlex</h1>
         <p className="auth-intro">{mode === 'login' ? 'Welcome back to your movie store.' : 'Create your movie store account.'}</p>

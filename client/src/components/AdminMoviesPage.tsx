@@ -1,0 +1,18 @@
+import { useEffect, useMemo, useState } from 'react';
+import * as movieApi from '../api/movies';
+import type { Movie } from '../api/movies';
+import { useAuth } from '../context/AuthContext';
+
+export function AdminMoviesPage({ onBack, onEdit, onAdd }: { onBack(): void; onEdit(movie: Movie): void; onAdd(): void }) {
+  const { token, user, logout } = useAuth();
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [search, setSearch] = useState('');
+  const [genre, setGenre] = useState('');
+  const [error, setError] = useState('');
+  function load() { movieApi.listMovies({ limit: 50 }).then((result) => { setMovies(result.data); setError(''); }).catch((caught: unknown) => setError(caught instanceof Error ? caught.message : 'Unable to load movies.')); }
+  useEffect(load, []);
+  const genres = useMemo(() => [...new Set(movies.map((movie) => movie.genre))].sort(), [movies]);
+  const filtered = useMemo(() => movies.filter((movie) => { const term = search.toLowerCase(); return (!genre || movie.genre === genre) && (!term || `${movie.title} ${movie.director}`.toLowerCase().includes(term)); }), [genre, movies, search]);
+  async function discontinue(movie: Movie) { if (!token || !window.confirm(`Discontinue “${movie.title}”?`)) return; try { await movieApi.discontinueMovie(movie.movieId, token); load(); } catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to discontinue movie.'); } }
+  return <main className="admin-shell"><header className="admin-header"><button className="admin-brand" type="button" onClick={onBack}>MovieFlex <small>ADMIN</small></button><nav><button className="active" type="button">Movies</button><button type="button" disabled>Orders</button><button type="button" disabled>Users</button></nav><div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div></header><section className="admin-content"><div className="admin-title-row"><div><h1>Movies</h1><span className="admin-badge">ADMIN</span><span className="count-badge">{filtered.length} titles</span></div><button className="primary-button" type="button" onClick={onAdd}>+ Add movie</button></div><div className="admin-filters"><input aria-label="Search admin movies" placeholder="Search by title or director…" value={search} onChange={(event) => setSearch(event.target.value)} /><select aria-label="Filter by genre" value={genre} onChange={(event) => setGenre(event.target.value)}><option value="">Genre</option>{genres.map((item) => <option key={item}>{item}</option>)}</select></div>{error && <div className="page-message error">{error}</div>}<div className="movie-table-wrap"><table className="movie-table"><thead><tr><th>Title</th><th>Genre</th><th>Director</th><th>Release date</th><th>Rating</th><th>Min</th><th>Stock</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>{filtered.map((movie) => <tr key={movie.movieId}><td><div className="table-title"><span className="mini-poster">▧</span><strong>{movie.title}</strong></div></td><td>{movie.genre}</td><td>{movie.director}</td><td>{movie.releaseDate}</td><td>{movie.classification}</td><td>{movie.runtimeMinutes}</td><td><span className={movie.stock === 0 ? 'stock zero' : 'stock'}>{movie.stock}</span></td><td><strong>${(movie.priceCents / 100).toFixed(2)}</strong></td><td><span className="status active">Active</span></td><td><div className="row-actions"><button type="button" onClick={() => onEdit(movie)}>Edit</button><button className="danger" type="button" onClick={() => discontinue(movie)}>Delete</button></div></td></tr>)}</tbody></table></div></section></main>;
+}

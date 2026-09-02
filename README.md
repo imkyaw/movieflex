@@ -53,7 +53,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-The seed creates one local admin identity, one local user identity, and 15 movies. These identities contain no passwords; authentication will be delegated to Cognito in Phase 3.
+The seed creates one local admin identity, one local user identity, and 15 movies. These identities contain no passwords. Register their seeded email addresses through the local UI to activate them for the current server session while preserving their seeded roles.
 
 ## Authentication
 
@@ -68,6 +68,20 @@ GET  /api/v1/auth/me
 Development uses the in-memory local identity provider selected by `IDENTITY_PROVIDER=local`. Register an account through the UI after each server restart; an existing local user record can be reactivated this way without changing its role. Password hashes exist only in memory and are never stored in the application database or committed to Git.
 
 Production uses `IDENTITY_PROVIDER=cognito` with `AWS_REGION`, `COGNITO_USER_POOL_ID`, and `COGNITO_CLIENT_ID`. The Elastic Beanstalk instance role supplies AWS credentials; access keys must not be placed in environment files.
+
+## Movie catalogue and admin CRUD
+
+The public catalogue is the startup page; visitors do not need to sign in to browse it. The API currently exposes:
+
+```text
+GET    /api/v1/movies
+GET    /api/v1/movies/:id
+POST   /api/v1/movies       (admin)
+PUT    /api/v1/movies/:id   (admin)
+DELETE /api/v1/movies/:id   (admin; soft delete)
+```
+
+The admin screen supports listing, creating, editing, and discontinuing movies. Poster upload is intentionally deferred to the S3 slice of Phase 4; the form shows this boundary clearly instead of storing files or poster URLs incorrectly.
 
 Docker applies committed SQLite migrations automatically when the server starts. Seed once with:
 
@@ -128,7 +142,7 @@ Merge pull requests with ordinary merge commits. Give all four members collabora
 - [x] Phase 1 — Skeleton
 - [x] Phase 2 — Data layer
 - [x] Phase 3 — Auth and login/register UI
-- [ ] Phase 4 — Catalogue + S3
+- [ ] Phase 4 — Catalogue + S3 (catalogue and CRUD complete; S3 poster upload pending)
 - [ ] Phase 5 — Orders
 - [ ] Phase 6 — Docs + client features
 - [ ] Phase 7 — Deployment artefacts
