@@ -3,8 +3,8 @@ import * as movieApi from '../api/movies';
 import type { Movie } from '../api/movies';
 import { useAuth } from '../context/AuthContext';
 
-export function CatalogPage({ onSignIn, onAdmin }: { onSignIn(): void; onAdmin(): void }) {
-  const { user, logout } = useAuth();
+export function CatalogPage({ onSignIn, onAdmin, onProfile, onSelectMovie }: { onSignIn(): void; onAdmin(): void; onProfile(): void; onSelectMovie(movieId: string): void }) {
+  const { user } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [search, setSearch] = useState('');
@@ -39,7 +39,7 @@ export function CatalogPage({ onSignIn, onAdmin }: { onSignIn(): void; onAdmin()
       <div className="search-box"><span>⌕</span><input aria-label="Search movies" placeholder="Search movies, directors, genres…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} /></div>
       <div className="header-actions">
         {user?.role === 'ADMIN' && <button className="secondary-button" type="button" onClick={onAdmin}>Admin</button>}
-        {user ? <><span className="user-name">{user.name}</span><button className="avatar-button" type="button" onClick={logout} title="Sign out">{user.name.charAt(0).toUpperCase()}</button></> : <button className="primary-button compact" type="button" onClick={onSignIn}>Sign in</button>}
+        {user ? <><span className="user-name">{user.name}</span><button className="avatar-button" type="button" onClick={onProfile} title="View profile">{user.name.charAt(0).toUpperCase()}</button></> : <button className="primary-button compact" type="button" onClick={onSignIn}>Sign in</button>}
       </div>
     </header>
     <nav className="genre-bar" aria-label="Movie genres">
@@ -49,8 +49,10 @@ export function CatalogPage({ onSignIn, onAdmin }: { onSignIn(): void; onAdmin()
     <section className="catalog-content" aria-live="polite">
       {error ? <div className="page-message error">{error}</div> : loading ? <div className="page-message">Loading catalogue…</div> : movies.length === 0 ? <div className="page-message">No movies match your filters.</div> : <div className="movie-grid">
         {movies.map((movie) => <article className="movie-card" key={movie.movieId}>
-          <div className="poster-placeholder">{movie.posterUrl ? <img src={movie.posterUrl} alt={`${movie.title} poster`} /> : <span>▧</span>}</div>
-          <div className="movie-card-body"><h2>{movie.title}</h2><p>{movie.releaseDate.slice(0, 4)} · {movie.classification}</p><strong>${(movie.priceCents / 100).toFixed(2)}</strong></div>
+          <button className="movie-card-link" type="button" onClick={() => onSelectMovie(movie.movieId)} aria-label={`View details for ${movie.title}`}>
+            <div className="poster-placeholder">{movie.posterUrl ? <img src={movie.posterUrl} alt={`${movie.title} poster`} /> : <span>▧</span>}</div>
+            <div className="movie-card-body"><h2>{movie.title}</h2><p>{movie.releaseDate.slice(0, 4)} · {movie.classification}</p><strong>${(movie.priceCents / 100).toFixed(2)}</strong></div>
+          </button>
         </article>)}
       </div>}
     </section>

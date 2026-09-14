@@ -31,6 +31,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export function getMovie(movieId: string) {
+  return request<Movie>(`/api/v1/movies/${movieId}`);
+}
+
 export function listMovies(params: { search?: string; genre?: string; page?: number; limit?: number } = {}) {
   const query = new URLSearchParams();
   if (params.search) query.set('search', params.search);
