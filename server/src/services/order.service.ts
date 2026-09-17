@@ -54,39 +54,26 @@ export async function checkout(userId: string, items: CheckoutItem[]) {
 }
 
 export async function listOrders(userId: string) {
-  return prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
-    include: { details: true },
+    include: { details: { include: { movie: { select: { posterUrl: true } } } } },
   });
-}
 
-export async function returnItem(userId: string, orderId: string, itemId: string) {
-  return prisma.$transaction(async (tx) => {
-    const detail = await tx.orderDetail.findUnique({ where: { id: itemId } });
-    if (!detail || detail.orderId !== orderId) {
-      throw new AppError(404, 'RENTAL_ITEM_NOT_FOUND', 'Rental item not found.');
-    }
-
-    const order = await tx.order.findUnique({ where: { orderId } });
-    if (!order || order.userId !== userId) {
-      throw new AppError(404, 'RENTAL_ITEM_NOT_FOUND', 'Rental item not found.');
-    }
-
-    if (detail.returnedAt) {
-      throw new AppError(409, 'ALREADY_RETURNED', 'This rental has already been returned.');
-    }
-
-    const updated = await tx.orderDetail.update({
-      where: { id: itemId },
-      data: { returnedAt: new Date() },
-    });
-
-    await tx.movie.update({
-      where: { movieId: detail.movieId },
-      data: { stock: { increment: detail.quantity } },
-    });
-
-    return updated;
-  });
+  return orders.map((order) => ({
+    orderId: order.orderId,
+    userId: order.userId,
+    totalCents: order.totalCents,
+    status: order.status,
+    createdAt: order.createdAt,
+    details: order.details.map((detail) => ({
+      id: detail.id,
+      orderId: detail.orderId,
+      movieId: detail.movieId,
+      title: detail.title,
+      quantity: detail.quantity,
+      unitPriceCents: detail.unitPriceCents,
+      posterUrl: detail.movie.posterUrl,
+    })),
+  }));
 }

@@ -1,7 +1,17 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Movie } from '../api/movies';
 
-export type CartItem = { movieId: string; title: string; priceCents: number; stock: number; quantity: number };
+export type CartItem = {
+  movieId: string;
+  title: string;
+  priceCents: number;
+  stock: number;
+  quantity: number;
+  posterUrl: string | null;
+  genre: string;
+  classification: string;
+  releaseDate: string;
+};
 
 type CartContextValue = {
   items: CartItem[];
@@ -45,7 +55,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const nextQuantity = Math.min(existing.quantity + quantity, cap);
           return current.map((item) => (item.movieId === movie.movieId ? { ...item, quantity: nextQuantity, stock: cap } : item));
         }
-        return [...current, { movieId: movie.movieId, title: movie.title, priceCents: movie.priceCents, stock: cap, quantity: Math.min(quantity, cap) }];
+        return [...current, {
+          movieId: movie.movieId,
+          title: movie.title,
+          priceCents: movie.priceCents,
+          stock: cap,
+          quantity: Math.min(quantity, cap),
+          posterUrl: movie.posterUrl,
+          genre: movie.genre,
+          classification: movie.classification,
+          releaseDate: movie.releaseDate,
+        }];
       });
     },
     updateQuantity(movieId, quantity) {

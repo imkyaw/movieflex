@@ -9,8 +9,3 @@ export const checkout: RequestHandler = async (req, res) => {
 export const listMyOrders: RequestHandler = async (req, res) => {
   res.status(200).json(await orderService.listOrders(req.user!.userId));
 };
-
-export const returnItem: RequestHandler = async (req, res) => {
-  const detail = await orderService.returnItem(req.user!.userId, String(req.params.orderId), String(req.params.itemId));
-  res.status(200).json(detail);
-};

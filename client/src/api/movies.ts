@@ -15,7 +15,7 @@ export type Movie = {
   posterUrl: string | null;
 };
 
-export type MovieInput = Omit<Movie, 'movieId' | 'posterUrl'>;
+export type MovieInput = Omit<Movie, 'movieId'>;
 type MovieList = { data: Movie[]; meta: { page: number; limit: number; total: number; totalPages: number } };
 type ApiError = { error?: { message?: string; details?: Array<{ msg?: string }> } };
 

@@ -31,7 +31,6 @@ model User {
   createdAt  DateTime @default(now()) @db.Timestamptz
   orders     Order[]
   reviews    Review[]
-  watchlist  WatchlistItem[]
 }
 
 model Movie {
@@ -45,13 +44,12 @@ model Movie {
   runtimeMinutes Int
   priceCents     Int
   stock          Int
-  posterKey      String?
+  posterUrl      String?
   status         MovieStatus   @default(ACTIVE)
   createdAt      DateTime      @default(now()) @db.Timestamptz
   updatedAt      DateTime      @updatedAt @db.Timestamptz
   orderDetails   OrderDetail[]
   reviews        Review[]
-  watchlistedBy  WatchlistItem[]
 
   @@index([genre])
   @@index([title])
@@ -71,15 +69,14 @@ model Order {
 }
 
 model OrderDetail {
-  id             String    @id @default(uuid()) @db.Uuid
-  orderId        String    @db.Uuid
-  movieId        String    @db.Uuid
+  id             String @id @default(uuid()) @db.Uuid
+  orderId        String @db.Uuid
+  movieId        String @db.Uuid
   title          String
   quantity       Int
   unitPriceCents Int
-  returnedAt     DateTime? @db.Timestamptz
-  order          Order     @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
-  movie          Movie     @relation(fields: [movieId], references: [movieId], onDelete: Restrict)
+  order          Order  @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
+  movie          Movie  @relation(fields: [movieId], references: [movieId], onDelete: Restrict)
 
   @@index([orderId])
 }
@@ -97,16 +94,4 @@ model Review {
 
   @@unique([movieId, userId])
   @@index([movieId])
-}
-
-model WatchlistItem {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  movieId   String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
-  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  movie     Movie    @relation(fields: [movieId], references: [movieId], onDelete: Cascade)
-
-  @@unique([userId, movieId])
-  @@index([userId])
 }

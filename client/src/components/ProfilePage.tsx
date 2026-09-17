@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { OrdersPage } from './OrdersPage';
-import { WatchlistPage } from './WatchlistPage';
 
-type Tab = 'profile' | 'rentals' | 'watchlist';
+type Tab = 'profile' | 'orders';
 
 function EditProfileForm() {
   const { user, updateProfile } = useAuth();
@@ -69,12 +68,10 @@ export function ProfilePage({ onBack }: { onBack(): void }) {
 
     <div className="profile-tabs" role="tablist" aria-label="Account sections">
       <button type="button" role="tab" aria-selected={tab === 'profile'} className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}>Profile</button>
-      <button type="button" role="tab" aria-selected={tab === 'rentals'} className={tab === 'rentals' ? 'active' : ''} onClick={() => setTab('rentals')}>My rentals</button>
-      <button type="button" role="tab" aria-selected={tab === 'watchlist'} className={tab === 'watchlist' ? 'active' : ''} onClick={() => setTab('watchlist')}>Watchlist</button>
+      <button type="button" role="tab" aria-selected={tab === 'orders'} className={tab === 'orders' ? 'active' : ''} onClick={() => setTab('orders')}>Orders</button>
     </div>
 
     {tab === 'profile' && <EditProfileForm />}
-    {tab === 'rentals' && <OrdersPage embedded />}
-    {tab === 'watchlist' && <WatchlistPage embedded />}
+    {tab === 'orders' && <OrdersPage embedded />}
   </main>;
 }

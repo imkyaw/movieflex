@@ -1,6 +1,6 @@
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-export type OrderDetail = { id: string; movieId: string; title: string; quantity: number; unitPriceCents: number; returnedAt: string | null };
+export type OrderDetail = { id: string; movieId: string; title: string; quantity: number; unitPriceCents: number; posterUrl: string | null };
 export type Order = { orderId: string; userId: string; totalCents: number; status: string; createdAt: string; details: OrderDetail[] };
 type ApiError = { error?: { message?: string; details?: Array<{ msg?: string }> } };
 
@@ -26,13 +26,6 @@ export function checkout(items: { movieId: string; quantity: number }[], token: 
 
 export function listOrders(token: string) {
   return request<Order[]>('/api/v1/orders', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
-
-export function returnItem(orderId: string, itemId: string, token: string) {
-  return request<OrderDetail>(`/api/v1/orders/${orderId}/items/${itemId}/return`, {
-    method: 'PUT',
     headers: { Authorization: `Bearer ${token}` },
   });
 }

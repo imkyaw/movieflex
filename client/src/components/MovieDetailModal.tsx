@@ -3,7 +3,6 @@ import * as reviewApi from '../api/reviews';
 import type { Movie } from '../api/movies';
 import type { Review } from '../api/reviews';
 import { useAuth } from '../context/AuthContext';
-import { useWatchlist } from '../context/WatchlistContext';
 
 function stars(rating: number) {
   const rounded = Math.round(rating);
@@ -28,20 +27,8 @@ function StarPicker({ value, onChange }: { value: number; onChange(rating: numbe
 
 export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie; onClose(): void; onAddToCart(quantity: number): void }) {
   const { user, token } = useAuth();
-  const { isSaved, toggle } = useWatchlist();
   const [quantity, setQuantity] = useState(1);
-  const [watchlistBusy, setWatchlistBusy] = useState(false);
   const outOfStock = movie.stock <= 0;
-  const saved = isSaved(movie.movieId);
-
-  async function toggleWatchlist() {
-    setWatchlistBusy(true);
-    try {
-      await toggle(movie);
-    } finally {
-      setWatchlistBusy(false);
-    }
-  }
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewMeta, setReviewMeta] = useState({ count: 0, average: 0 });
@@ -101,12 +88,7 @@ export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie
       <button className="modal-close" type="button" onClick={onClose} aria-label="Close">×</button>
       <div className="modal-poster">{movie.posterUrl ? <img src={movie.posterUrl} alt={`${movie.title} poster`} /> : <span>▧</span>}</div>
       <div className="modal-body">
-        <div className="modal-title-row">
-          <h2>{movie.title}</h2>
-          {user && <button className={`watchlist-toggle${saved ? ' saved' : ''}`} type="button" disabled={watchlistBusy} onClick={toggleWatchlist} title={saved ? 'Remove from watchlist' : 'Save to watchlist'}>
-            {saved ? '★ Saved' : '☆ Save'}
-          </button>}
-        </div>
+        <h2>{movie.title}</h2>
         <p className="modal-meta">{movie.releaseDate.slice(0, 4)} · {movie.classification} · {movie.runtimeMinutes} min · {movie.genre}</p>
         <p className="modal-director">Directed by {movie.director}</p>
         <p className="modal-description">{movie.description}</p>
@@ -122,7 +104,7 @@ export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie
           </div>}
         </div>
         <button className="primary-button" type="button" disabled={outOfStock} onClick={() => onAddToCart(quantity)}>
-          {outOfStock ? 'Out of stock' : 'Add to cart'}
+          {outOfStock ? 'Out of stock' : 'Add to Cart'}
         </button>
 
         <section className="reviews-section">

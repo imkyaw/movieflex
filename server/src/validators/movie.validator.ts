@@ -22,6 +22,13 @@ const movieFields = [
   body('priceCents').isInt({ min: 0 }).toInt(),
   body('stock').isInt({ min: 0 }).toInt(),
   body('status').optional().isIn(['ACTIVE', 'DISCONTINUED']),
+  body('posterUrl')
+    .optional({ values: 'falsy' })
+    .isString()
+    .trim()
+    .isLength({ max: 2000 })
+    .isURL({ require_protocol: true })
+    .withMessage('Poster URL must be a valid URL.'),
 ];
 
 export const createMovieValidator = movieFields;
