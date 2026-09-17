@@ -1,0 +1,1 @@
+ALTER TABLE "OrderDetail" ADD COLUMN "returnedAt" TIMESTAMPTZ;

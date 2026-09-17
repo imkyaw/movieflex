@@ -34,3 +34,11 @@ export function register(name: string, email: string, password: string) {
 export function getMe(token: string) {
   return request<User>('/api/v1/auth/me', { headers: { Authorization: `Bearer ${token}` } });
 }
+
+export function updateProfile(name: string, token: string) {
+  return request<User>('/api/v1/auth/me', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ name }),
+  });
+}

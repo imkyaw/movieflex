@@ -23,3 +23,8 @@ export const me: RequestHandler = (req, res) => {
   if (!req.user) throw new AppError(401, 'AUTH_REQUIRED', 'Authentication is required.');
   res.status(200).json(authService.getProfile(req.user));
 };
+
+export const updateMe: RequestHandler = async (req, res) => {
+  if (!req.user) throw new AppError(401, 'AUTH_REQUIRED', 'Authentication is required.');
+  res.status(200).json(await authService.updateProfile(req.user, req.body as { name: string }));
+};

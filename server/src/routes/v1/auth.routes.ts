@@ -5,6 +5,7 @@ import { validateRequest } from '../../middleware/validate.middleware.js';
 import {
   loginValidator,
   registerValidator,
+  updateProfileValidator,
 } from '../../validators/auth.validator.js';
 
 export const authRouter = Router();
@@ -12,3 +13,4 @@ export const authRouter = Router();
 authRouter.post('/register', registerValidator, validateRequest, authController.register);
 authRouter.post('/login', loginValidator, validateRequest, authController.login);
 authRouter.get('/me', requireAuth, authController.me);
+authRouter.put('/me', requireAuth, updateProfileValidator, validateRequest, authController.updateMe);

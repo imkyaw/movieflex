@@ -89,3 +89,11 @@ export async function login(input: LoginInput) {
 export function getProfile(user: User): PublicUser {
   return publicUser(user);
 }
+
+export async function updateProfile(user: User, input: { name: string }): Promise<PublicUser> {
+  const updated = await prisma.user.update({
+    where: { userId: user.userId },
+    data: { name: input.name },
+  });
+  return publicUser(updated);
+}

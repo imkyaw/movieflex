@@ -15,7 +15,7 @@ export type MovieInput = {
   status?: 'ACTIVE' | 'DISCONTINUED';
 };
 
-function serializeMovie(movie: Movie) {
+export function serializeMovie(movie: Movie) {
   return {
     movieId: movie.movieId,
     title: movie.title,
