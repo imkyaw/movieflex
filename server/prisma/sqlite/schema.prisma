@@ -15,6 +15,7 @@ model User {
   role       String   @default("USER")
   createdAt  DateTime @default(now())
   orders     Order[]
+  reviews    Review[]
 }
 
 model Movie {
@@ -28,11 +29,12 @@ model Movie {
   runtimeMinutes Int
   priceCents     Int
   stock          Int
-  posterKey      String?
+  posterUrl      String?
   status         String        @default("ACTIVE")
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   orderDetails   OrderDetail[]
+  reviews        Review[]
 
   @@index([genre])
   @@index([title])
@@ -62,4 +64,19 @@ model OrderDetail {
   movie          Movie  @relation(fields: [movieId], references: [movieId], onDelete: Restrict)
 
   @@index([orderId])
+}
+
+model Review {
+  reviewId  String   @id @default(uuid())
+  movieId   String
+  userId    String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  movie     Movie    @relation(fields: [movieId], references: [movieId], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([movieId, userId])
+  @@index([movieId])
 }

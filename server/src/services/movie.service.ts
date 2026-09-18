@@ -13,9 +13,10 @@ export type MovieInput = {
   priceCents: number;
   stock: number;
   status?: 'ACTIVE' | 'DISCONTINUED';
+  posterUrl?: string | null;
 };
 
-function serializeMovie(movie: Movie) {
+export function serializeMovie(movie: Movie) {
   return {
     movieId: movie.movieId,
     title: movie.title,
@@ -28,10 +29,15 @@ function serializeMovie(movie: Movie) {
     priceCents: movie.priceCents,
     stock: movie.stock,
     status: movie.status,
-    posterUrl: null,
+    posterUrl: movie.posterUrl,
     createdAt: movie.createdAt,
     updatedAt: movie.updatedAt,
   };
+}
+
+function normalizePosterUrl(posterUrl: string | null | undefined): string | null {
+  const trimmed = posterUrl?.trim();
+  return trimmed ? trimmed : null;
 }
 
 export async function listMovies(input: {
@@ -87,6 +93,7 @@ export async function createMovie(input: MovieInput) {
       ...input,
       releaseDate: new Date(`${input.releaseDate}T00:00:00.000Z`),
       status: input.status ?? 'ACTIVE',
+      posterUrl: normalizePosterUrl(input.posterUrl),
     },
   });
   return serializeMovie(movie);
@@ -99,6 +106,7 @@ export async function updateMovie(movieId: string, input: MovieInput) {
     data: {
       ...input,
       releaseDate: new Date(`${input.releaseDate}T00:00:00.000Z`),
+      posterUrl: normalizePosterUrl(input.posterUrl),
     },
   });
   return serializeMovie(movie);

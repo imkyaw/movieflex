@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 
 const rootEl = document.getElementById('root');
 
@@ -12,6 +13,6 @@ if (!rootEl) {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <AuthProvider><App /></AuthProvider>
+    <AuthProvider><CartProvider><App /></CartProvider></AuthProvider>
   </StrictMode>,
 );
