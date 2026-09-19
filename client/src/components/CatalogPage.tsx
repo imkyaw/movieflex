@@ -79,7 +79,11 @@ export function CatalogPage({ onSignIn, onAdmin, onCart, onProfile }: { onSignIn
     {selectedMovie && <MovieDetailModal
       movie={selectedMovie}
       onClose={() => setSelectedMovie(null)}
-      onAddToCart={(quantity) => { addItem(selectedMovie, quantity); setSelectedMovie(null); }}
+      onAddToCart={async (quantity) => {
+        if (!user) { onSignIn(); return; }
+        await addItem(selectedMovie, quantity);
+        setSelectedMovie(null);
+      }}
     />}
   </main>;
 }

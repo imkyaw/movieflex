@@ -11,12 +11,22 @@ export function CartPage({ onBack, onSignIn }: { onBack(): void; onSignIn(): voi
   const [placing, setPlacing] = useState(false);
   const [confirmed, setConfirmed] = useState<{ items: CartItem[]; totalCents: number } | null>(null);
 
+  function handleUpdateQuantity(movieId: string, quantity: number) {
+    setError('');
+    updateQuantity(movieId, quantity).catch((caught: unknown) => setError(caught instanceof Error ? caught.message : 'Unable to update your cart.'));
+  }
+
+  function handleRemoveItem(movieId: string) {
+    setError('');
+    removeItem(movieId).catch((caught: unknown) => setError(caught instanceof Error ? caught.message : 'Unable to update your cart.'));
+  }
+
   async function placeOrder() {
     if (!token) { onSignIn(); return; }
     setPlacing(true);
     setError('');
     try {
-      const order = await orderApi.checkout(items.map((item) => ({ movieId: item.movieId, quantity: item.quantity })), token);
+      const order = await orderApi.checkout(token);
       setConfirmed({ items, totalCents: order.totalCents });
       clear();
     } catch (caught) {
@@ -61,12 +71,12 @@ export function CartPage({ onBack, onSignIn }: { onBack(): void; onSignIn(): voi
           </div>
           <div className="cart-line-actions">
             <div className="qty-stepper">
-              <button type="button" onClick={() => updateQuantity(item.movieId, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
+              <button type="button" onClick={() => handleUpdateQuantity(item.movieId, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
               <span>{item.quantity}</span>
-              <button type="button" onClick={() => updateQuantity(item.movieId, item.quantity + 1)} disabled={item.quantity >= item.stock}>+</button>
+              <button type="button" onClick={() => handleUpdateQuantity(item.movieId, item.quantity + 1)} disabled={item.quantity >= item.stock}>+</button>
             </div>
             <strong>${((item.priceCents * item.quantity) / 100).toFixed(2)}</strong>
-            <button className="cart-remove" type="button" onClick={() => removeItem(item.movieId)}>Remove</button>
+            <button className="cart-remove" type="button" onClick={() => handleRemoveItem(item.movieId)}>Remove</button>
           </div>
         </div>)}
       </div>
