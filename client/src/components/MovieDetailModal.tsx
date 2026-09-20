@@ -25,10 +25,24 @@ function StarPicker({ value, onChange }: { value: number; onChange(rating: numbe
   </div>;
 }
 
-export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie; onClose(): void; onAddToCart(quantity: number): void }) {
+export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie; onClose(): void; onAddToCart(quantity: number): Promise<void> }) {
   const { user, token } = useAuth();
   const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartError, setCartError] = useState('');
   const outOfStock = movie.stock <= 0;
+
+  async function handleAddToCart() {
+    setAddingToCart(true);
+    setCartError('');
+    try {
+      await onAddToCart(quantity);
+    } catch (caught) {
+      setCartError(caught instanceof Error ? caught.message : 'Unable to add to cart.');
+    } finally {
+      setAddingToCart(false);
+    }
+  }
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewMeta, setReviewMeta] = useState({ count: 0, average: 0 });
@@ -103,8 +117,9 @@ export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie
             <button type="button" onClick={() => setQuantity((q) => Math.min(movie.stock, q + 1))} disabled={quantity >= movie.stock}>+</button>
           </div>}
         </div>
-        <button className="primary-button" type="button" disabled={outOfStock} onClick={() => onAddToCart(quantity)}>
-          {outOfStock ? 'Out of stock' : 'Add to Cart'}
+        {cartError && <div className="form-error">{cartError}</div>}
+        <button className="primary-button" type="button" disabled={outOfStock || addingToCart} onClick={handleAddToCart}>
+          {outOfStock ? 'Out of stock' : addingToCart ? 'Adding…' : user ? 'Add to Cart' : 'Sign in to add to cart'}
         </button>
 
         <section className="reviews-section">

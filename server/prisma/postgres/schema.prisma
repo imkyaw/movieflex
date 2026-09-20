@@ -18,6 +18,7 @@ enum MovieStatus {
 }
 
 enum OrderStatus {
+  CART
   PAID
   CANCELLED
 }
@@ -59,13 +60,14 @@ model Movie {
 model Order {
   orderId    String        @id @default(uuid()) @db.Uuid
   userId     String        @db.Uuid
-  totalCents Int
-  status     OrderStatus   @default(PAID)
+  totalCents Int           @default(0)
+  status     OrderStatus   @default(CART)
   createdAt  DateTime      @default(now()) @db.Timestamptz
   user       User          @relation(fields: [userId], references: [userId], onDelete: Restrict)
   details    OrderDetail[]
 
   @@index([userId])
+  @@index([userId, status])
 }
 
 model OrderDetail {
@@ -78,6 +80,7 @@ model OrderDetail {
   order          Order  @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
   movie          Movie  @relation(fields: [movieId], references: [movieId], onDelete: Restrict)
 
+  @@unique([orderId, movieId])
   @@index([orderId])
 }
 

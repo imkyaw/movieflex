@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Movie } from '../api/movies';
+import * as orderApi from '../api/orders';
+import type { Order, OrderDetail } from '../api/orders';
+import { useAuth } from './AuthContext';
 
 export type CartItem = {
   movieId: string;
@@ -17,65 +19,58 @@ type CartContextValue = {
   items: CartItem[];
   count: number;
   totalCents: number;
-  addItem(movie: Movie, quantity?: number): void;
-  updateQuantity(movieId: string, quantity: number): void;
-  removeItem(movieId: string): void;
+  addItem(movie: { movieId: string }, quantity?: number): Promise<void>;
+  updateQuantity(movieId: string, quantity: number): Promise<void>;
+  removeItem(movieId: string): Promise<void>;
   clear(): void;
 };
 
-const CART_KEY = 'movieflex_cart';
 const CartContext = createContext<CartContextValue | null>(null);
 
-function readCart(): CartItem[] {
-  try {
-    const raw = localStorage.getItem(CART_KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
-  } catch {
-    return [];
-  }
+function toCartItems(order: Order): CartItem[] {
+  return order.details.map((detail: OrderDetail) => ({
+    movieId: detail.movieId,
+    title: detail.title,
+    priceCents: detail.unitPriceCents,
+    stock: detail.stock,
+    quantity: detail.quantity,
+    posterUrl: detail.posterUrl,
+    genre: detail.genre,
+    classification: detail.classification,
+    releaseDate: detail.releaseDate,
+  }));
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(readCart);
+  const { token } = useAuth();
+  const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    try { localStorage.setItem(CART_KEY, JSON.stringify(items)); } catch { /* storage unavailable */ }
-  }, [items]);
+    if (!token) { setItems([]); return; }
+    orderApi.getCart(token).then((order) => setItems(toCartItems(order))).catch(() => setItems([]));
+  }, [token]);
 
   const value = useMemo<CartContextValue>(() => ({
     items,
     count: items.reduce((sum, item) => sum + item.quantity, 0),
     totalCents: items.reduce((sum, item) => sum + item.quantity * item.priceCents, 0),
-    addItem(movie, quantity = 1) {
-      setItems((current) => {
-        const cap = Math.max(0, movie.stock);
-        if (cap === 0) return current;
-        const existing = current.find((item) => item.movieId === movie.movieId);
-        if (existing) {
-          const nextQuantity = Math.min(existing.quantity + quantity, cap);
-          return current.map((item) => (item.movieId === movie.movieId ? { ...item, quantity: nextQuantity, stock: cap } : item));
-        }
-        return [...current, {
-          movieId: movie.movieId,
-          title: movie.title,
-          priceCents: movie.priceCents,
-          stock: cap,
-          quantity: Math.min(quantity, cap),
-          posterUrl: movie.posterUrl,
-          genre: movie.genre,
-          classification: movie.classification,
-          releaseDate: movie.releaseDate,
-        }];
-      });
+    async addItem(movie, quantity = 1) {
+      if (!token) return;
+      const order = await orderApi.addCartItem(movie.movieId, quantity, token);
+      setItems(toCartItems(order));
     },
-    updateQuantity(movieId, quantity) {
-      setItems((current) => current.map((item) => (item.movieId === movieId ? { ...item, quantity: Math.max(1, Math.min(quantity, item.stock)) } : item)));
+    async updateQuantity(movieId, quantity) {
+      if (!token) return;
+      const order = await orderApi.updateCartItem(movieId, quantity, token);
+      setItems(toCartItems(order));
     },
-    removeItem(movieId) {
-      setItems((current) => current.filter((item) => item.movieId !== movieId));
+    async removeItem(movieId) {
+      if (!token) return;
+      const order = await orderApi.removeCartItem(movieId, token);
+      setItems(toCartItems(order));
     },
     clear() { setItems([]); },
-  }), [items]);
+  }), [items, token]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
