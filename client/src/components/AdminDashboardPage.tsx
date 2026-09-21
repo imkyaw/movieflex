@@ -3,7 +3,7 @@ import * as adminApi from '../api/admin';
 import type { Dashboard } from '../api/admin';
 import { useAuth } from '../context/AuthContext';
 
-export function AdminDashboardPage({ onBack, onMovies }: { onBack(): void; onMovies(): void }) {
+export function AdminDashboardPage({ onBack, onMovies, onUsers, onOrders }: { onBack(): void; onMovies(): void; onUsers(): void; onOrders(): void }) {
   const { token, user, logout } = useAuth();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState('');
@@ -23,8 +23,8 @@ export function AdminDashboardPage({ onBack, onMovies }: { onBack(): void; onMov
       <nav>
         <button className="active" type="button">Dashboard</button>
         <button type="button" onClick={onMovies}>Movies</button>
-        <button type="button" disabled>Orders</button>
-        <button type="button" disabled>Users</button>
+        <button type="button" onClick={onOrders}>Orders</button>
+        <button type="button" onClick={onUsers}>Users</button>
       </nav>
       <div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div>
     </header>

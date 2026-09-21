@@ -13,9 +13,12 @@ model User {
   email      String   @unique
   name       String
   role       String   @default("USER")
+  status     String   @default("ACTIVE")
   createdAt  DateTime @default(now())
   orders     Order[]
   reviews    Review[]
+
+  @@index([status])
 }
 
 model Movie {

@@ -27,7 +27,7 @@ const movieFields = [
     .isString()
     .trim()
     .isLength({ max: 2000 })
-    .isURL({ require_protocol: true })
+    .isURL({ require_protocol: true, require_tld: false })
     .withMessage('Poster URL must be a valid URL.'),
 ];
 

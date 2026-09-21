@@ -80,6 +80,9 @@ export async function login(input: LoginInput) {
     if (!user) {
       throw new AppError(401, 'LOCAL_USER_NOT_FOUND', 'Application account not found.');
     }
+    if (user.status === 'INACTIVE') {
+      throw new AppError(403, 'ACCOUNT_INACTIVE', 'This account has been deactivated.');
+    }
     return { token, user: publicUser(user) };
   } catch (error) {
     mapIdentityError(error);
