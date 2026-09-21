@@ -31,6 +31,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export function getMovie(movieId: string) {
+  return request<Movie>(`/api/v1/movies/${movieId}`);
+}
+
 export function listMovies(params: { search?: string; genre?: string; page?: number; limit?: number } = {}) {
   const query = new URLSearchParams();
   if (params.search) query.set('search', params.search);
@@ -58,4 +62,19 @@ export function updateMovie(movieId: string, input: MovieInput, token: string) {
 
 export function discontinueMovie(movieId: string, token: string) {
   return request<Movie>(`/api/v1/movies/${movieId}`, adminOptions(token, 'DELETE'));
+}
+
+export async function uploadPoster(file: File, token: string) {
+  const body = new FormData();
+  body.append('file', file);
+  const response = await fetch(`${apiBaseUrl}/api/v1/uploads/poster`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+  });
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => ({}))) as ApiError;
+    throw new Error(errorBody.error?.details?.[0]?.msg ?? errorBody.error?.message ?? 'Unable to upload poster.');
+  }
+  return response.json() as Promise<{ url: string }>;
 }

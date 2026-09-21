@@ -19,6 +19,10 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
       next(new AppError(401, 'LOCAL_USER_NOT_FOUND', 'Application account not found.'));
       return;
     }
+    if (user.status === 'INACTIVE') {
+      next(new AppError(403, 'ACCOUNT_INACTIVE', 'This account has been deactivated.'));
+      return;
+    }
     req.user = user;
     next();
   } catch {

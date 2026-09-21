@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
+import { MulterError } from 'multer';
 import { AppError } from '../utils/AppError.js';
 
 export const notFoundHandler: RequestHandler = (req, _res, next) => {
@@ -14,6 +15,12 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
         ...(error.details === undefined ? {} : { details: error.details }),
       },
     });
+    return;
+  }
+
+  if (error instanceof MulterError) {
+    const message = error.code === 'LIMIT_FILE_SIZE' ? 'File exceeds the 5 MB limit.' : error.message;
+    res.status(400).json({ error: { code: 'UPLOAD_ERROR', message } });
     return;
   }
 
