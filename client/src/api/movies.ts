@@ -15,7 +15,7 @@ export type Movie = {
   posterUrl: string | null;
 };
 
-export type MovieInput = Omit<Movie, 'movieId'>;
+export type MovieInput = Omit<Movie, 'movieId' | 'posterUrl'>;
 type MovieList = { data: Movie[]; meta: { page: number; limit: number; total: number; totalPages: number } };
 type ApiError = { error?: { message?: string; details?: Array<{ msg?: string }> } };
 
@@ -64,10 +64,10 @@ export function discontinueMovie(movieId: string, token: string) {
   return request<Movie>(`/api/v1/movies/${movieId}`, adminOptions(token, 'DELETE'));
 }
 
-export async function uploadPoster(file: File, token: string) {
+export async function uploadPoster(movieId: string, file: File, token: string) {
   const body = new FormData();
   body.append('file', file);
-  const response = await fetch(`${apiBaseUrl}/api/v1/uploads/poster`, {
+  const response = await fetch(`${apiBaseUrl}/api/v1/movies/${movieId}/poster`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body,
@@ -76,5 +76,5 @@ export async function uploadPoster(file: File, token: string) {
     const errorBody = (await response.json().catch(() => ({}))) as ApiError;
     throw new Error(errorBody.error?.details?.[0]?.msg ?? errorBody.error?.message ?? 'Unable to upload poster.');
   }
-  return response.json() as Promise<{ url: string }>;
+  return response.json() as Promise<{ posterKey: string; posterUrl: string }>;
 }

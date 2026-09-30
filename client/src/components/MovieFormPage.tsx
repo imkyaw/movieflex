@@ -8,7 +8,7 @@ const RATINGS = ['G', 'PG', 'M', 'R13', 'R16', 'R18'];
 const ACCEPTED_POSTER_TYPES = ['image/jpeg', 'image/png'];
 const MAX_POSTER_BYTES = 5 * 1024 * 1024;
 
-const emptyForm: MovieInput = { title: '', description: '', genre: '', director: '', releaseDate: '', classification: '', runtimeMinutes: 90, priceCents: 0, stock: 0, status: 'ACTIVE', posterUrl: '' };
+const emptyForm: MovieInput = { title: '', description: '', genre: '', director: '', releaseDate: '', classification: '', runtimeMinutes: 90, priceCents: 0, stock: 0, status: 'ACTIVE' };
 
 export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, onOrders }: { movie: Movie | null; onCancel(): void; onSaved(): void; onDashboard(): void; onUsers(): void; onOrders(): void }) {
   const { token, user } = useAuth();
@@ -23,7 +23,6 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
     priceCents: movie.priceCents,
     stock: movie.stock,
     status: movie.status,
-    posterUrl: movie.posterUrl ?? '',
   } : emptyForm);
   const [price, setPrice] = useState(() => (form.priceCents / 100).toFixed(2));
   const [saving, setSaving] = useState(false);
@@ -33,6 +32,8 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
   const [uploadingPoster, setUploadingPoster] = useState(false);
   const [posterError, setPosterError] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [pendingPoster, setPendingPoster] = useState<File | null>(null);
+  const [posterPreviewUrl, setPosterPreviewUrl] = useState(movie?.posterUrl ?? '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function set<K extends keyof MovieInput>(key: K, value: MovieInput[K]) {
@@ -46,8 +47,14 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
     setUploadingPoster(true);
     setPosterError('');
     try {
-      const { url } = await movieApi.uploadPoster(file, token);
-      set('posterUrl', url);
+      const previewUrl = URL.createObjectURL(file);
+      setPosterPreviewUrl(previewUrl);
+      if (movie) {
+        const uploaded = await movieApi.uploadPoster(movie.movieId, file, token);
+        setPosterPreviewUrl(uploaded.posterUrl);
+      } else {
+        setPendingPoster(file);
+      }
     } catch (caught) {
       setPosterError(caught instanceof Error ? caught.message : 'Unable to upload poster.');
     } finally {
@@ -69,8 +76,12 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
     setError('');
     const payload = { ...form, priceCents: Math.round(Number(price) * 100) };
     try {
-      if (movie) await movieApi.updateMovie(movie.movieId, payload, token);
-      else await movieApi.createMovie(payload, token);
+      if (movie) {
+        await movieApi.updateMovie(movie.movieId, payload, token);
+      } else {
+        const created = await movieApi.createMovie(payload, token);
+        if (pendingPoster) await movieApi.uploadPoster(created.movieId, pendingPoster, token);
+      }
       onSaved();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to save movie.');
@@ -147,11 +158,6 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
             <input type="number" min="0" value={form.stock} onChange={(event) => set('stock', Number(event.target.value))} required />
           </label>
 
-          <div className="span-2">
-            <label>Poster URL
-              <input type="url" value={form.posterUrl ?? ''} onChange={(event) => set('posterUrl', event.target.value)} placeholder="https://…/poster.jpg" />
-            </label>
-          </div>
           <label>Status
             <select value={form.status} onChange={(event) => set('status', event.target.value as MovieInput['status'])}>
               <option value="ACTIVE">Active</option>
@@ -174,8 +180,8 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
 
         <div className="admin-sidebar">
           <aside className="poster-panel">
-            <h2>Poster (Poster URL)</h2>
-            {form.posterUrl ? <div className="poster-preview small"><img src={form.posterUrl} alt="Poster preview" /></div> : <div className="poster-preview small poster-preview-empty"><span>▧</span></div>}
+            <h2>Poster image</h2>
+            {posterPreviewUrl ? <div className="poster-preview small"><img src={posterPreviewUrl} alt="Poster preview" /></div> : <div className="poster-preview small poster-preview-empty"><span>▧</span></div>}
             <input
               ref={fileInputRef}
               type="file"
@@ -194,11 +200,11 @@ export function MovieFormPage({ movie, onCancel, onSaved, onDashboard, onUsers, 
               onDrop={handleDrop}
             >
               <strong>↑</strong>
-              <span>{uploadingPoster ? 'Uploading…' : 'Replace poster'}</span>
+              <span>{uploadingPoster ? 'Uploading…' : posterPreviewUrl ? 'Replace poster' : 'Choose poster'}</span>
               <small>JPEG or PNG · max 5 MB</small>
             </div>
             {posterError && <div className="form-error">{posterError}</div>}
-            <p>Or paste a URL in the Poster URL field.</p>
+            <p>Stored privately in Amazon S3.</p>
           </aside>
 
           {movie && <aside className="poster-panel danger-panel">

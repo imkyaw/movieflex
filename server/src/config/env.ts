@@ -16,6 +16,7 @@ export type Env = {
   AWS_REGION?: string;
   COGNITO_USER_POOL_ID?: string;
   COGNITO_CLIENT_ID?: string;
+  POSTER_BUCKET_NAME?: string;
 };
 
 function requireString(name: string): string {
@@ -63,6 +64,7 @@ function loadEnv(): Env {
   const awsRegion = optionalString('AWS_REGION');
   const cognitoUserPoolId = optionalString('COGNITO_USER_POOL_ID');
   const cognitoClientId = optionalString('COGNITO_CLIENT_ID');
+  const posterBucketName = optionalString('POSTER_BUCKET_NAME');
 
   if (identityProvider === 'local' && (localJwtSecret?.length ?? 0) < 32) {
     throw new Error('LOCAL_JWT_SECRET must contain at least 32 characters.');
@@ -77,6 +79,10 @@ function loadEnv(): Env {
     );
   }
 
+  if (process.env.NODE_ENV === 'production' && (!awsRegion || !posterBucketName)) {
+    throw new Error('AWS_REGION and POSTER_BUCKET_NAME are required in production.');
+  }
+
   return {
     NODE_ENV: parseNodeEnv(requireString('NODE_ENV')),
     PORT: parsePort(requireString('PORT')),
@@ -87,6 +93,7 @@ function loadEnv(): Env {
     AWS_REGION: awsRegion,
     COGNITO_USER_POOL_ID: cognitoUserPoolId,
     COGNITO_CLIENT_ID: cognitoClientId,
+    POSTER_BUCKET_NAME: posterBucketName,
   };
 }
 

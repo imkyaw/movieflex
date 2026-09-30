@@ -1,6 +1,5 @@
 import cors from 'cors';
 import express from 'express';
-import { resolve } from 'node:path';
 import { env } from './config/env.js';
 import { routes } from './routes/index.js';
 import {
@@ -17,7 +16,6 @@ export function createApp() {
     }),
   );
   app.use(express.json());
-  app.use('/uploads', express.static(resolve(process.cwd(), 'uploads')));
 
   app.use(routes);
   app.use(notFoundHandler);

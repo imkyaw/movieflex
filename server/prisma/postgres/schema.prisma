@@ -53,7 +53,7 @@ model Movie {
   runtimeMinutes Int
   priceCents     Int
   stock          Int
-  posterUrl      String?
+  posterKey      String?
   status         MovieStatus   @default(ACTIVE)
   createdAt      DateTime      @default(now()) @db.Timestamptz
   updatedAt      DateTime      @updatedAt @db.Timestamptz

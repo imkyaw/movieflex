@@ -1,9 +1,10 @@
 import { prisma } from '../db/prisma.js';
 import { AppError } from '../utils/AppError.js';
 import * as orderService from './order.service.js';
+import { getPosterUrl } from './upload.service.js';
 
 const LOW_STOCK_THRESHOLD = 5;
-const USER_STATUSES = ['ACTIVE', 'INACTIVE'];
+const USER_STATUSES = ['ACTIVE', 'INACTIVE'] as const;
 
 export async function getDashboard() {
   const [movieCount, activeMovieCount, lowStockCount, userCount, orderAggregate, recentOrders] = await Promise.all([
@@ -86,7 +87,7 @@ export async function getUserDetail(userId: string) {
 }
 
 export async function updateUserStatus(userId: string, status: string, actingUserId: string) {
-  if (!USER_STATUSES.includes(status)) {
+  if (!(USER_STATUSES as readonly string[]).includes(status)) {
     throw new AppError(422, 'VALIDATION_ERROR', 'Status must be either ACTIVE or INACTIVE.');
   }
 
@@ -101,7 +102,8 @@ export async function updateUserStatus(userId: string, status: string, actingUse
     throw new AppError(400, 'CANNOT_UPDATE_SELF', 'You cannot change the status of your own account.');
   }
 
-  const updated = await prisma.user.update({ where: { userId }, data: { status } });
+  const nextStatus = status as (typeof USER_STATUSES)[number];
+  const updated = await prisma.user.update({ where: { userId }, data: { status: nextStatus } });
   return { userId: updated.userId, status: updated.status };
 }
 
@@ -130,7 +132,7 @@ export async function getOrderDetail(orderId: string) {
     where: { orderId },
     include: {
       user: { select: { name: true, email: true } },
-      details: { include: { movie: { select: { posterUrl: true } } } },
+      details: { include: { movie: { select: { posterKey: true } } } },
     },
   });
   if (!order || order.status !== 'PAID') {
@@ -143,13 +145,13 @@ export async function getOrderDetail(orderId: string) {
     customerEmail: order.user.email,
     totalCents: order.totalCents,
     createdAt: order.createdAt,
-    details: order.details.map((detail) => ({
+    details: await Promise.all(order.details.map(async (detail) => ({
       id: detail.id,
       movieId: detail.movieId,
       title: detail.title,
       quantity: detail.quantity,
       unitPriceCents: detail.unitPriceCents,
-      posterUrl: detail.movie.posterUrl,
-    })),
+      posterUrl: await getPosterUrl(detail.movie.posterKey),
+    }))),
   };
 }
