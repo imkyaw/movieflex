@@ -1,6 +1,7 @@
 import type { Movie, Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { AppError } from '../utils/AppError.js';
+import { getPosterUrl } from './upload.service.js';
 
 export type MovieInput = {
   title: string;
@@ -13,10 +14,9 @@ export type MovieInput = {
   priceCents: number;
   stock: number;
   status?: 'ACTIVE' | 'DISCONTINUED';
-  posterUrl?: string | null;
 };
 
-export function serializeMovie(movie: Movie) {
+export async function serializeMovie(movie: Movie) {
   return {
     movieId: movie.movieId,
     title: movie.title,
@@ -29,15 +29,10 @@ export function serializeMovie(movie: Movie) {
     priceCents: movie.priceCents,
     stock: movie.stock,
     status: movie.status,
-    posterUrl: movie.posterUrl,
+    posterUrl: await getPosterUrl(movie.posterKey),
     createdAt: movie.createdAt,
     updatedAt: movie.updatedAt,
   };
-}
-
-function normalizePosterUrl(posterUrl: string | null | undefined): string | null {
-  const trimmed = posterUrl?.trim();
-  return trimmed ? trimmed : null;
 }
 
 export async function listMovies(input: {
@@ -71,7 +66,7 @@ export async function listMovies(input: {
   ]);
 
   return {
-    data: movies.map(serializeMovie),
+    data: await Promise.all(movies.map(serializeMovie)),
     meta: {
       page: input.page,
       limit: input.limit,
@@ -93,7 +88,6 @@ export async function createMovie(input: MovieInput) {
       ...input,
       releaseDate: new Date(`${input.releaseDate}T00:00:00.000Z`),
       status: input.status ?? 'ACTIVE',
-      posterUrl: normalizePosterUrl(input.posterUrl),
     },
   });
   return serializeMovie(movie);
@@ -106,7 +100,6 @@ export async function updateMovie(movieId: string, input: MovieInput) {
     data: {
       ...input,
       releaseDate: new Date(`${input.releaseDate}T00:00:00.000Z`),
-      posterUrl: normalizePosterUrl(input.posterUrl),
     },
   });
   return serializeMovie(movie);
@@ -117,6 +110,14 @@ export async function discontinueMovie(movieId: string) {
   const movie = await prisma.movie.update({
     where: { movieId },
     data: { status: 'DISCONTINUED' },
+  });
+  return serializeMovie(movie);
+}
+
+export async function setPosterKey(movieId: string, posterKey: string) {
+  const movie = await prisma.movie.update({
+    where: { movieId },
+    data: { posterKey },
   });
   return serializeMovie(movie);
 }

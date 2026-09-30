@@ -1,33 +1,34 @@
 import type { Order, OrderDetail, Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { AppError } from '../utils/AppError.js';
+import { getPosterUrl } from './upload.service.js';
 
-type DetailMovie = { posterUrl: string | null; genre: string; classification: string; releaseDate: Date; stock: number };
+type DetailMovie = { posterKey: string | null; genre: string; classification: string; releaseDate: Date; stock: number };
 type OrderWithDetails = Order & { details: (OrderDetail & { movie: DetailMovie })[] };
 
-const detailMovieSelect = { posterUrl: true, genre: true, classification: true, releaseDate: true, stock: true } as const;
+const detailMovieSelect = { posterKey: true, genre: true, classification: true, releaseDate: true, stock: true } as const;
 const cartInclude = { details: { include: { movie: { select: detailMovieSelect } } } } as const;
 
-function serializeOrder(order: OrderWithDetails) {
+async function serializeOrder(order: OrderWithDetails) {
   return {
     orderId: order.orderId,
     userId: order.userId,
     totalCents: order.totalCents,
     status: order.status,
     createdAt: order.createdAt,
-    details: order.details.map((detail) => ({
+    details: await Promise.all(order.details.map(async (detail) => ({
       id: detail.id,
       orderId: detail.orderId,
       movieId: detail.movieId,
       title: detail.title,
       quantity: detail.quantity,
       unitPriceCents: detail.unitPriceCents,
-      posterUrl: detail.movie.posterUrl,
+      posterUrl: await getPosterUrl(detail.movie.posterKey),
       genre: detail.movie.genre,
       classification: detail.movie.classification,
       releaseDate: detail.movie.releaseDate.toISOString().slice(0, 10),
       stock: detail.movie.stock,
-    })),
+    }))),
   };
 }
 
@@ -168,5 +169,5 @@ export async function listOrders(userId: string) {
     include: cartInclude,
   });
 
-  return orders.map(serializeOrder);
+  return Promise.all(orders.map(serializeOrder));
 }
