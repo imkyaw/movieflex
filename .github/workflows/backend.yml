@@ -1,0 +1,80 @@
+name: Backend build and deploy
+
+on:
+  push:
+    branches: [master]
+    paths: ['server/**', 'package*.json', 'client/package.json', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['server/**', 'package*.json']
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the built bundle to Elastic Beanstalk
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run prisma:generate:postgres --workspace=server
+      - run: npm run typecheck --workspace=server
+      - run: npm run build --workspace=server
+      - name: Package bundle
+        run: |
+          set -euo pipefail
+          B=$(mktemp -d)
+          cp package.json package-lock.json "$B"/
+          mkdir -p "$B/server" "$B/client"
+          cp server/package.json server/tsconfig.json "$B/server/"
+          cp client/package.json "$B/client/"
+          cp -r server/src server/dist "$B/server/"
+          mkdir -p "$B/server/prisma" && cp -r server/prisma/postgres "$B/server/prisma/"
+          cp server/Procfile "$B/Procfile"
+          cp -r server/.ebextensions server/.platform "$B/"
+          find "$B/.platform" -name '*.sh' -exec chmod +x {} +
+          test -s "$B/server/dist/server.js"
+          (cd "$B" && zip -qr -X "$GITHUB_WORKSPACE/backend-${GITHUB_SHA::8}.zip" .)
+          unzip -Z "backend-${GITHUB_SHA::8}.zip" | grep -E '\.sh$'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-bundle
+          path: backend-*.zip
+
+  deploy:
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-bundle
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Deploy to Elastic Beanstalk
+        env:
+          APP: ${{ vars.EB_APPLICATION }}
+          ENV_NAME: ${{ vars.EB_ENVIRONMENT }}
+          BUCKET: ${{ vars.EB_DEPLOY_BUCKET }}
+        run: |
+          set -euo pipefail
+          ZIP=$(ls backend-*.zip)
+          LABEL="${ZIP%.zip}-${GITHUB_RUN_NUMBER}"
+          aws s3 cp "$ZIP" "s3://$BUCKET/$LABEL.zip"
+          aws elasticbeanstalk create-application-version --application-name "$APP" \
+            --version-label "$LABEL" --source-bundle S3Bucket="$BUCKET",S3Key="$LABEL.zip"
+          aws elasticbeanstalk update-environment --environment-name "$ENV_NAME" --version-label "$LABEL"
+          aws elasticbeanstalk wait environment-updated --environment-names "$ENV_NAME"
