@@ -77,10 +77,25 @@ jobs:
           aws elasticbeanstalk create-application-version --application-name "$APP" \
             --version-label "$LABEL" --source-bundle S3Bucket="$BUCKET",S3Key="$LABEL.zip"
           aws elasticbeanstalk update-environment --environment-name "$ENV_NAME" --version-label "$LABEL"
-          aws elasticbeanstalk wait environment-updated --environment-names "$ENV_NAME"
-          # "wait" returns when the environment is Ready again, even after a failed
-          # update that rolled back, so confirm the new version is actually running.
-          RUNNING=$(aws elasticbeanstalk describe-environments --environment-names "$ENV_NAME"             --query 'Environments[0].VersionLabel' --output text)
+          # The CLI waiter gives up after ~6m40s, shorter than a rolling deploy.
+          # Poll for up to 30 minutes instead.
+          sleep 15  # let the environment leave Ready before polling
+          STATUS=""
+          for i in $(seq 1 90); do
+            STATUS=$(aws elasticbeanstalk describe-environments --environment-names "$ENV_NAME" \
+              --query 'Environments[0].Status' --output text)
+            [ "$STATUS" = "Ready" ] && break
+            echo "Environment status: $STATUS (check $i/90)"
+            sleep 20
+          done
+          if [ "$STATUS" != "Ready" ]; then
+            echo "::error::Timed out after 30 minutes waiting for the environment (status: $STATUS)."
+            exit 1
+          fi
+          # Ready is also reported after a rolled-back update, so confirm the new
+          # version is actually the one running.
+          RUNNING=$(aws elasticbeanstalk describe-environments --environment-names "$ENV_NAME" \
+            --query 'Environments[0].VersionLabel' --output text)
           if [ "$RUNNING" != "$LABEL" ]; then
             echo "::error::Deploy failed: running version is '$RUNNING', expected '$LABEL'. Check the Beanstalk Events tab."
             exit 1
