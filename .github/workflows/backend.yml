@@ -78,3 +78,10 @@ jobs:
             --version-label "$LABEL" --source-bundle S3Bucket="$BUCKET",S3Key="$LABEL.zip"
           aws elasticbeanstalk update-environment --environment-name "$ENV_NAME" --version-label "$LABEL"
           aws elasticbeanstalk wait environment-updated --environment-names "$ENV_NAME"
+          # "wait" returns when the environment is Ready again, even after a failed
+          # update that rolled back, so confirm the new version is actually running.
+          RUNNING=$(aws elasticbeanstalk describe-environments --environment-names "$ENV_NAME"             --query 'Environments[0].VersionLabel' --output text)
+          if [ "$RUNNING" != "$LABEL" ]; then
+            echo "::error::Deploy failed: running version is '$RUNNING', expected '$LABEL'. Check the Beanstalk Events tab."
+            exit 1
+          fi
