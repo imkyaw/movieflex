@@ -77,7 +77,22 @@ Pushes and pull requests that touch `client/**` only build.
 - Old hashed files are not deleted, so a browser holding an older `index.html` still finds its bundles.
   Clean up the bucket occasionally if it grows.
 
-## Prerequisite
+## Prerequisite: SPA routing
 
-CloudFront must map 403/404 to `/index.html` (200) for the client behavior only, so React routes work.
-The `/api/*` behavior must not use that fallback.
+S3 returns 403 for any path that is not a file, so `/` and React routes such as `/movies/1` fail with an XML AccessDenied page.
+
+Do not fix this with CloudFront custom error pages (403/404 to `/index.html`). Those apply to the whole distribution, not one behavior, and would turn the API's own 403/404 responses into HTML.
+
+Instead, attach a CloudFront Function to the **default (\*) behavior only**, as a viewer request:
+
+```js
+function handler(event) {
+  var request = event.request;
+  if (request.uri.indexOf('.') === -1) {
+    request.uri = '/index.html';
+  }
+  return request;
+}
+```
+
+Files with an extension (`/assets/*.js`, `/favicon.ico`) pass through. The `/api/*` behavior has no function and no error-page mapping.
