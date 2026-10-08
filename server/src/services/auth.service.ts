@@ -26,6 +26,10 @@ function publicUser(user: User): PublicUser {
   };
 }
 
+function isConfiguredAdmin(email: string): boolean {
+  return env.ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
 function mapIdentityError(error: unknown): never {
   if (error instanceof IdentityProviderError) {
     if (error.code === 'DUPLICATE_ACCOUNT') {
@@ -58,6 +62,7 @@ export async function register(input: RegisterInput) {
             cognitoSub: identity.sub,
             email,
             name: input.name,
+            ...(isConfiguredAdmin(email) && { role: 'ADMIN' }),
           },
         });
     const { token } = await identityProvider.login(email, input.password);
@@ -74,7 +79,7 @@ export async function login(input: LoginInput) {
       input.password,
     );
     const claims = await identityProvider.verify(token);
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { cognitoSub: claims.sub },
     });
     if (!user) {
@@ -82,6 +87,12 @@ export async function login(input: LoginInput) {
     }
     if (user.status === 'INACTIVE') {
       throw new AppError(403, 'ACCOUNT_INACTIVE', 'This account has been deactivated.');
+    }
+    if (user.role !== 'ADMIN' && isConfiguredAdmin(user.email)) {
+      user = await prisma.user.update({
+        where: { userId: user.userId },
+        data: { role: 'ADMIN' },
+      });
     }
     return { token, user: publicUser(user) };
   } catch (error) {

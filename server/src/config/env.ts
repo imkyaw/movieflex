@@ -17,6 +17,7 @@ export type Env = {
   COGNITO_USER_POOL_ID?: string;
   COGNITO_CLIENT_ID?: string;
   POSTER_BUCKET_NAME?: string;
+  ADMIN_EMAILS: string[];
 };
 
 function requireString(name: string): string {
@@ -47,6 +48,13 @@ function parsePort(value: string): number {
 function optionalString(name: string): string | undefined {
   const value = process.env[name]?.trim();
   return value === '' ? undefined : value;
+}
+
+function parseEmailList(name: string): string[] {
+  return (optionalString(name) ?? '')
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter((email) => email !== '');
 }
 
 function parseIdentityProvider(value: string): IdentityProviderName {
@@ -94,6 +102,7 @@ function loadEnv(): Env {
     COGNITO_USER_POOL_ID: cognitoUserPoolId,
     COGNITO_CLIENT_ID: cognitoClientId,
     POSTER_BUCKET_NAME: posterBucketName,
+    ADMIN_EMAILS: parseEmailList('ADMIN_EMAILS'),
   };
 }
 
