@@ -1,7 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'forgot';
 
 export function AuthPage({ onBack }: { onBack?: () => void }) {
   const { login, register } = useAuth();
@@ -45,7 +46,8 @@ export function AuthPage({ onBack }: { onBack?: () => void }) {
         {onBack && <button className="back-link" type="button" onClick={onBack}>← Back to catalogue</button>}
         <div className="brand-mark" aria-hidden="true">M</div>
         <h1 id="auth-title">MovieFlex</h1>
-        <p className="auth-intro">{mode === 'login' ? 'Welcome back to your movie store.' : 'Create your movie store account.'}</p>
+        <p className="auth-intro">{mode === 'login' ? 'Welcome back to your movie store.' : mode === 'register' ? 'Create your movie store account.' : 'Reset your password.'}</p>
+        {mode === 'forgot' ? <ForgotPasswordForm initialEmail={email} onBack={(address) => { setEmail(address); setPassword(''); switchMode('login'); }} /> : <>
         <div className="auth-tabs" role="tablist" aria-label="Authentication">
           <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'active' : ''} onClick={() => switchMode('login')}>Sign in</button>
           <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'active' : ''} onClick={() => switchMode('register')}>Register</button>
@@ -57,6 +59,7 @@ export function AuthPage({ onBack }: { onBack?: () => void }) {
           </div>}
           <label>Email address<input type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
           <label>Password<input type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="••••••••" minLength={mode === 'register' ? 8 : undefined} value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+          {mode === 'login' && <button className="text-link forgot-link" type="button" onClick={() => switchMode('forgot')}>Forgot password?</button>}
           {mode === 'register' && <>
             <label>Confirm password<input type="password" autoComplete="new-password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></label>
             <div className="strength" aria-label="Password strength"><span>Password strength</span><strong>{['Weak', 'Weak', 'Medium', 'Strong'][passwordStrength]}</strong><div><i className={`score-${passwordStrength}`} /></div></div>
@@ -65,6 +68,7 @@ export function AuthPage({ onBack }: { onBack?: () => void }) {
           {error && <div className="form-error" role="alert">{error}</div>}
           <button className="submit-button" type="submit" disabled={submitting}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
         </form>
+        </>}
       </section>
     </main>
   );

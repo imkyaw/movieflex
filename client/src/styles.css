@@ -260,3 +260,13 @@ select:focus, textarea:focus { border-color: #6891ef; box-shadow: 0 0 0 3px rgba
 .password-rules li.met::before { content: '✓ '; }
 .password-hint { margin: -6px 0 12px; color: #a52b2b; font-size: 12px; }
 .password-dialog .profile-saved, .password-dialog .form-error { margin-bottom: 16px; }
+
+.forgot-link { display: block; margin: -4px 0 14px auto; }
+.text-link { padding: 0; border: 0; background: none; color: #2864e8; font-size: 12px; font-weight: 600; cursor: pointer; }
+.text-link:hover:not(:disabled) { text-decoration: underline; }
+.text-link:disabled { color: #98a2b3; cursor: default; }
+.forgot-form { display: grid; gap: 14px; }
+.forgot-form label { margin-bottom: 0; }
+.forgot-text { margin: 0; color: #667085; font-size: 13px; line-height: 1.5; }
+.forgot-links { display: flex; justify-content: space-between; }
+.forgot-form .password-rules { margin: -4px 0 0; }

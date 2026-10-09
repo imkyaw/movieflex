@@ -1,7 +1,10 @@
 import {
   AdminConfirmSignUpCommand,
   AdminSetUserPasswordCommand,
+  AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
+  ConfirmForgotPasswordCommand,
+  ForgotPasswordCommand,
   InitiateAuthCommand,
   SignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -97,6 +100,76 @@ export class CognitoIdentityProvider implements IdentityProvider {
       );
     } catch {
       throw new IdentityProviderError('PROVIDER_ERROR', 'Unable to change the password.');
+    }
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const sendCode = () =>
+      this.client.send(new ForgotPasswordCommand({ ClientId: this.clientId, Username: email }));
+    try {
+      await sendCode();
+    } catch (error) {
+      const name = error instanceof Error ? error.name : '';
+      // Unknown or unusable accounts look the same as success, so emails cannot be probed.
+      if (name === 'UserNotFoundException' || name === 'NotAuthorizedException') return;
+      if (name === 'InvalidParameterException') {
+        // Sign-up confirms accounts itself, so the email may not be marked verified yet.
+        // Cognito only sends codes to verified emails, and the code goes to this address anyway.
+        try {
+          await this.client.send(
+            new AdminUpdateUserAttributesCommand({
+              UserPoolId: this.userPoolId,
+              Username: email,
+              UserAttributes: [{ Name: 'email_verified', Value: 'true' }],
+            }),
+          );
+          await sendCode();
+          return;
+        } catch (retryError) {
+          const retryName = retryError instanceof Error ? retryError.name : '';
+          if (retryName === 'UserNotFoundException') return;
+        }
+      }
+      if (name === 'LimitExceededException') {
+        throw new IdentityProviderError(
+          'PROVIDER_ERROR',
+          'Too many attempts. Please wait a while and try again.',
+        );
+      }
+      throw new IdentityProviderError('PROVIDER_ERROR', 'Unable to send the reset code.');
+    }
+  }
+
+  async confirmPasswordReset(email: string, code: string, newPassword: string): Promise<void> {
+    try {
+      await this.client.send(
+        new ConfirmForgotPasswordCommand({
+          ClientId: this.clientId,
+          Username: email,
+          ConfirmationCode: code,
+          Password: newPassword,
+        }),
+      );
+    } catch (error) {
+      const name = error instanceof Error ? error.name : '';
+      if (
+        name === 'CodeMismatchException' ||
+        name === 'ExpiredCodeException' ||
+        name === 'UserNotFoundException' ||
+        name === 'NotAuthorizedException'
+      ) {
+        throw new IdentityProviderError('INVALID_CODE', 'The code is incorrect or has expired.');
+      }
+      if (name === 'InvalidPasswordException') {
+        throw new IdentityProviderError('PROVIDER_ERROR', 'The new password does not meet the requirements.');
+      }
+      if (name === 'LimitExceededException' || name === 'TooManyFailedAttemptsException') {
+        throw new IdentityProviderError(
+          'PROVIDER_ERROR',
+          'Too many attempts. Please wait a while and try again.',
+        );
+      }
+      throw new IdentityProviderError('PROVIDER_ERROR', 'Unable to reset the password.');
     }
   }
 

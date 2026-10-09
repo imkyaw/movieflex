@@ -37,3 +37,18 @@ export const changePassword: RequestHandler = async (req, res) => {
   });
   res.status(204).send();
 };
+
+export const forgotPassword: RequestHandler = async (req, res) => {
+  await authService.forgotPassword((req.body as { email: string }).email);
+  // Same answer whether or not the account exists.
+  res.status(204).send();
+};
+
+export const resetPassword: RequestHandler = async (req, res) => {
+  await authService.resetPassword(req.body as {
+    email: string;
+    code: string;
+    newPassword: string;
+  });
+  res.status(204).send();
+};
