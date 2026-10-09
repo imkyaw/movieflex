@@ -42,7 +42,12 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy
+    # Merges to master deploy (after approval on the production environment).
+    # Manual runs deploy only when the deploy box is ticked.
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
+    concurrency:
+      group: frontend-deploy
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment: production
     steps:

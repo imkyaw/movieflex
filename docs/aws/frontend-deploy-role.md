@@ -66,8 +66,9 @@ The `production` environment already exists, and its approval gate applies to th
 
 ## 4. Deploy
 
-Actions > Frontend build and deploy > Run workflow > branch `master` > tick `deploy` > approve.
-Pushes and pull requests that touch `client/**` only build.
+Merging a change under `client/**` into `master` builds, then waits for approval on the
+`production` environment (Actions > the run > Review deployments > Approve). Pull requests only build.
+To redeploy by hand: Actions > Frontend build and deploy > Run workflow > branch `master` > tick `deploy` > approve.
 
 ## Cache behavior
 
