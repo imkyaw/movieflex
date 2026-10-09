@@ -55,6 +55,12 @@ export class LocalIdentityProvider implements IdentityProvider {
     };
   }
 
+  async changePassword(email: string, currentPassword: string, newPassword: string): Promise<void> {
+    await this.login(email, currentPassword);
+    const account = this.accounts.get(email.toLowerCase())!;
+    account.passwordHash = await bcrypt.hash(newPassword, 10);
+  }
+
   async verify(token: string): Promise<IdentityClaims> {
     try {
       const payload = jwt.verify(token, this.secret);

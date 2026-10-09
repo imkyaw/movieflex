@@ -13,6 +13,7 @@ export interface IdentityProvider {
   register(input: RegisterIdentityInput): Promise<{ sub: string }>;
   login(email: string, password: string): Promise<{ token: string }>;
   verify(token: string): Promise<IdentityClaims>;
+  changePassword(email: string, currentPassword: string, newPassword: string): Promise<void>;
 }
 
 export class IdentityProviderError extends Error {

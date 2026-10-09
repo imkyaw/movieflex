@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { ChangePasswordDialog } from './ChangePasswordDialog';
 import { OrdersPage } from './OrdersPage';
 
 type Tab = 'profile' | 'orders';
@@ -10,6 +11,7 @@ function EditProfileForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   if (!user) return null;
 
@@ -48,11 +50,11 @@ function EditProfileForm() {
     </div>
 
     <div className="profile-unavailable">
-      <label>Password
-        <input type="password" value="••••••••••" disabled />
-      </label>
-      <p className="not-available">Not available — this environment's identity provider doesn't support password changes yet.</p>
+      <span className="profile-section-label">Password</span>
+      <p className="profile-hint">Use a strong password that is not used on other sites.</p>
+      <button className="secondary-button" type="button" onClick={() => setChangingPassword(true)}>Change password</button>
     </div>
+    {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
   </div>;
 }
 

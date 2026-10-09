@@ -100,6 +100,20 @@ export async function login(input: LoginInput) {
   }
 }
 
+export async function changePassword(
+  user: User,
+  input: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  try {
+    await identityProvider.changePassword(user.email, input.currentPassword, input.newPassword);
+  } catch (error) {
+    if (error instanceof IdentityProviderError && error.code === 'INVALID_CREDENTIALS') {
+      throw new AppError(400, 'CURRENT_PASSWORD_INCORRECT', 'Your current password is incorrect.');
+    }
+    mapIdentityError(error);
+  }
+}
+
 export function getProfile(user: User): PublicUser {
   return publicUser(user);
 }

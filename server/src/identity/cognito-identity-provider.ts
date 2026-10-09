@@ -1,5 +1,6 @@
 import {
   AdminConfirmSignUpCommand,
+  AdminSetUserPasswordCommand,
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
   SignUpCommand,
@@ -79,6 +80,23 @@ export class CognitoIdentityProvider implements IdentityProvider {
         'INVALID_CREDENTIALS',
         'Email or password is incorrect.',
       );
+    }
+  }
+
+  async changePassword(email: string, currentPassword: string, newPassword: string): Promise<void> {
+    // Prove the user knows the current password before replacing it.
+    await this.login(email, currentPassword);
+    try {
+      await this.client.send(
+        new AdminSetUserPasswordCommand({
+          UserPoolId: this.userPoolId,
+          Username: email,
+          Password: newPassword,
+          Permanent: true,
+        }),
+      );
+    } catch {
+      throw new IdentityProviderError('PROVIDER_ERROR', 'Unable to change the password.');
     }
   }
 

@@ -34,3 +34,21 @@ export const updateProfileValidator = [
     .isLength({ min: 2, max: 100 })
     .withMessage('Name must be between 2 and 100 characters.'),
 ];
+
+export const changePasswordValidator = [
+  body('currentPassword').isString().notEmpty().withMessage('Enter your current password.'),
+  body('newPassword')
+    .isString()
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters.')
+    .matches(/[a-z]/)
+    .withMessage('Password must include a lowercase letter.')
+    .matches(/[A-Z]/)
+    .withMessage('Password must include an uppercase letter.')
+    .matches(/[0-9]/)
+    .withMessage('Password must include a number.')
+    .matches(/[^A-Za-z0-9]/)
+    .withMessage('Password must include a special character.')
+    .custom((value, { req }) => value !== (req.body as { currentPassword?: string }).currentPassword)
+    .withMessage('Choose a password different from the current one.'),
+];

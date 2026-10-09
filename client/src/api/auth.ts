@@ -42,3 +42,15 @@ export function updateProfile(name: string, token: string) {
     body: JSON.stringify({ name }),
   });
 }
+
+export async function changePassword(currentPassword: string, newPassword: string, token: string) {
+  const response = await fetch(`${apiBaseUrl}/api/v1/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiError;
+    throw new Error(body.error?.details?.[0]?.msg ?? body.error?.message ?? 'Unable to change your password.');
+  }
+}

@@ -28,3 +28,12 @@ export const updateMe: RequestHandler = async (req, res) => {
   if (!req.user) throw new AppError(401, 'AUTH_REQUIRED', 'Authentication is required.');
   res.status(200).json(await authService.updateProfile(req.user, req.body as { name: string }));
 };
+
+export const changePassword: RequestHandler = async (req, res) => {
+  if (!req.user) throw new AppError(401, 'AUTH_REQUIRED', 'Authentication is required.');
+  await authService.changePassword(req.user, req.body as {
+    currentPassword: string;
+    newPassword: string;
+  });
+  res.status(204).send();
+};

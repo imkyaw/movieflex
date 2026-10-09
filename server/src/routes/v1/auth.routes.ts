@@ -3,6 +3,7 @@ import * as authController from '../../controllers/auth.controller.js';
 import { requireAuth } from '../../middleware/auth.middleware.js';
 import { validateRequest } from '../../middleware/validate.middleware.js';
 import {
+  changePasswordValidator,
   loginValidator,
   registerValidator,
   updateProfileValidator,
@@ -14,3 +15,4 @@ authRouter.post('/register', registerValidator, validateRequest, authController.
 authRouter.post('/login', loginValidator, validateRequest, authController.login);
 authRouter.get('/me', requireAuth, authController.me);
 authRouter.put('/me', requireAuth, updateProfileValidator, validateRequest, authController.updateMe);
+authRouter.post('/change-password', requireAuth, changePasswordValidator, validateRequest, authController.changePassword);
