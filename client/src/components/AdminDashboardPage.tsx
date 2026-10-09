@@ -3,8 +3,9 @@ import * as adminApi from '../api/admin';
 import type { Dashboard } from '../api/admin';
 import { useAuth } from '../context/AuthContext';
 
+import { SignOutButton } from './SignOutDialog';
 export function AdminDashboardPage({ onBack, onMovies, onUsers, onOrders }: { onBack(): void; onMovies(): void; onUsers(): void; onOrders(): void }) {
-  const { token, user, logout } = useAuth();
+  const { token, user } = useAuth();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export function AdminDashboardPage({ onBack, onMovies, onUsers, onOrders }: { on
         <button type="button" onClick={onOrders}>Orders</button>
         <button type="button" onClick={onUsers}>Users</button>
       </nav>
-      <div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div>
+      <div className="admin-user"><span>{user?.name}</span><SignOutButton /></div>
     </header>
     <section className="admin-content">
       <div className="admin-title-row">

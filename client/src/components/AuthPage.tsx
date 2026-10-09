@@ -65,7 +65,6 @@ export function AuthPage({ onBack }: { onBack?: () => void }) {
           {error && <div className="form-error" role="alert">{error}</div>}
           <button className="submit-button" type="submit" disabled={submitting}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
         </form>
-        <p className="auth-switch">{mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}<button type="button" onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}>{mode === 'login' ? 'Create one' : 'Sign in'}</button></p>
       </section>
     </main>
   );

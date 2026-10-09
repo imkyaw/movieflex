@@ -3,8 +3,9 @@ import * as moviesApi from '../api/movies';
 import type { Movie } from '../api/movies';
 import { useAuth } from '../context/AuthContext';
 
+import { SignOutButton } from './SignOutDialog';
 export function AdminMovieDetailPage({ movieId, onBack, onDashboard, onMovies, onUsers, onOrders }: { movieId: string; onBack(): void; onDashboard(): void; onMovies(): void; onUsers(): void; onOrders(): void }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ export function AdminMovieDetailPage({ movieId, onBack, onDashboard, onMovies, o
         <button type="button" onClick={onOrders}>Orders</button>
         <button type="button" onClick={onUsers}>Users</button>
       </nav>
-      <div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div>
+      <div className="admin-user"><span>{user?.name}</span><SignOutButton /></div>
     </header>
     <section className="admin-content">
       <nav className="breadcrumb" aria-label="Breadcrumb">
