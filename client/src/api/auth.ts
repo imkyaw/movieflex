@@ -42,3 +42,27 @@ export function updateProfile(name: string, token: string) {
     body: JSON.stringify({ name }),
   });
 }
+
+async function postNoContent(path: string, body: unknown, fallback: string, token?: string) {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const parsed = (await response.json().catch(() => ({}))) as ApiError;
+    throw new Error(parsed.error?.details?.[0]?.msg ?? parsed.error?.message ?? fallback);
+  }
+}
+
+export function changePassword(currentPassword: string, newPassword: string, token: string) {
+  return postNoContent('/api/v1/auth/change-password', { currentPassword, newPassword }, 'Unable to change your password.', token);
+}
+
+export function forgotPassword(email: string) {
+  return postNoContent('/api/v1/auth/forgot-password', { email }, 'Unable to send the code.');
+}
+
+export function resetPassword(email: string, code: string, newPassword: string) {
+  return postNoContent('/api/v1/auth/reset-password', { email, code, newPassword }, 'Unable to reset the password.');
+}

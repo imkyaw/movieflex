@@ -38,6 +38,9 @@ function mapIdentityError(error: unknown): never {
     if (error.code === 'INVALID_CREDENTIALS') {
       throw new AppError(401, 'INVALID_CREDENTIALS', error.message);
     }
+    if (error.code === 'INVALID_CODE') {
+      throw new AppError(400, 'INVALID_RESET_CODE', error.message);
+    }
     throw new AppError(502, 'IDENTITY_PROVIDER_ERROR', error.message);
   }
   throw error;
@@ -95,6 +98,44 @@ export async function login(input: LoginInput) {
       });
     }
     return { token, user: publicUser(user) };
+  } catch (error) {
+    mapIdentityError(error);
+  }
+}
+
+export async function changePassword(
+  user: User,
+  input: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  try {
+    await identityProvider.changePassword(user.email, input.currentPassword, input.newPassword);
+  } catch (error) {
+    if (error instanceof IdentityProviderError && error.code === 'INVALID_CREDENTIALS') {
+      throw new AppError(400, 'CURRENT_PASSWORD_INCORRECT', 'Your current password is incorrect.');
+    }
+    mapIdentityError(error);
+  }
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  try {
+    await identityProvider.requestPasswordReset(email.toLowerCase());
+  } catch (error) {
+    mapIdentityError(error);
+  }
+}
+
+export async function resetPassword(input: {
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<void> {
+  try {
+    await identityProvider.confirmPasswordReset(
+      input.email.toLowerCase(),
+      input.code,
+      input.newPassword,
+    );
   } catch (error) {
     mapIdentityError(error);
   }

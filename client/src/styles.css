@@ -246,3 +246,27 @@ select:focus, textarea:focus { border-color: #6891ef; box-shadow: 0 0 0 3px rgba
 .danger-button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 8px; color: white; background: #d92d20; font-weight: 750; cursor: pointer; }
 .danger-button:hover { background: #b42318; }
 @media (max-width: 700px) { .modal-main { grid-template-columns: 1fr; gap: 22px; padding: 24px 20px 4px; } .modal-poster { width: min(100%, 240px); margin: 0 auto; } .modal-info h2 { margin-right: 36px; font-size: 24px; } .modal-body { padding: 8px 20px 24px; } .modal-facts { grid-template-columns: 96px minmax(0, 1fr); } }
+
+.profile-section-label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600; }
+.profile-hint { margin: 0 0 12px; color: #667085; font-size: 12px; }
+.password-dialog { width: min(100%, 420px); }
+.password-dialog label { display: block; margin-bottom: 14px; font-size: 13px; font-weight: 600; }
+.password-field { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.password-field input { flex: 1; min-width: 0; margin: 0; }
+.password-toggle { padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 8px; background: white; color: #475467; font-size: 12px; cursor: pointer; }
+.password-rules { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin: -4px 0 16px; padding: 0; list-style: none; color: #98a2b3; font-size: 11px; }
+.password-rules li::before { content: '○ '; }
+.password-rules li.met { color: #167548; }
+.password-rules li.met::before { content: '✓ '; }
+.password-hint { margin: -6px 0 12px; color: #a52b2b; font-size: 12px; }
+.password-dialog .profile-saved, .password-dialog .form-error { margin-bottom: 16px; }
+
+.forgot-link { display: block; margin: -4px 0 14px auto; }
+.text-link { padding: 0; border: 0; background: none; color: #2864e8; font-size: 12px; font-weight: 600; cursor: pointer; }
+.text-link:hover:not(:disabled) { text-decoration: underline; }
+.text-link:disabled { color: #98a2b3; cursor: default; }
+.forgot-form { display: grid; gap: 14px; }
+.forgot-form label { margin-bottom: 0; }
+.forgot-text { margin: 0; color: #667085; font-size: 13px; line-height: 1.5; }
+.forgot-links { display: flex; justify-content: space-between; }
+.forgot-form .password-rules { margin: -4px 0 0; }

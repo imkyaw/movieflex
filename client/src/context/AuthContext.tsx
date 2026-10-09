@@ -9,6 +9,7 @@ type AuthContextValue = {
   login(email: string, password: string): Promise<void>;
   register(name: string, email: string, password: string): Promise<void>;
   updateProfile(name: string): Promise<void>;
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
   logout(): void;
 };
 
@@ -45,6 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!token) return;
       const updated = await authApi.updateProfile(name, token);
       setUser(updated);
+    },
+    async changePassword(currentPassword, newPassword) {
+      if (!token) return;
+      await authApi.changePassword(currentPassword, newPassword, token);
     },
     logout() { localStorage.removeItem(TOKEN_KEY); setToken(null); setUser(null); },
   }), [loading, token, user]);
