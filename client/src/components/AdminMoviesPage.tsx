@@ -3,6 +3,7 @@ import * as movieApi from '../api/movies';
 import type { Movie } from '../api/movies';
 import { useAuth } from '../context/AuthContext';
 
+import { SignOutButton } from './SignOutDialog';
 const LOW_STOCK_THRESHOLD = 5;
 
 function stockClass(stock: number) {
@@ -12,7 +13,7 @@ function stockClass(stock: number) {
 }
 
 export function AdminMoviesPage({ onBack, onEdit, onAdd, onDashboard, onUsers, onOrders }: { onBack(): void; onEdit(movie: Movie): void; onAdd(): void; onDashboard(): void; onUsers(): void; onOrders(): void }) {
-  const { token, user, logout } = useAuth();
+  const { token, user } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('');
@@ -56,7 +57,7 @@ export function AdminMoviesPage({ onBack, onEdit, onAdd, onDashboard, onUsers, o
         <button type="button" onClick={onOrders}>Orders</button>
         <button type="button" onClick={onUsers}>Users</button>
       </nav>
-      <div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div>
+      <div className="admin-user"><span>{user?.name}</span><SignOutButton /></div>
     </header>
     <section className="admin-content">
       <div className="admin-title-row">

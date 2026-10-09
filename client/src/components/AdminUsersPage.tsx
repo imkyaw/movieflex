@@ -3,8 +3,9 @@ import * as adminApi from '../api/admin';
 import type { AdminUser } from '../api/admin';
 import { useAuth } from '../context/AuthContext';
 
+import { SignOutButton } from './SignOutDialog';
 export function AdminUsersPage({ onBack, onDashboard, onMovies, onOrders, onView }: { onBack(): void; onDashboard(): void; onMovies(): void; onOrders(): void; onView(userId: string): void }) {
-  const { token, user, logout } = useAuth();
+  const { token, user } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
@@ -34,7 +35,7 @@ export function AdminUsersPage({ onBack, onDashboard, onMovies, onOrders, onView
         <button type="button" onClick={onOrders}>Orders</button>
         <button className="active" type="button">Users</button>
       </nav>
-      <div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div>
+      <div className="admin-user"><span>{user?.name}</span><SignOutButton /></div>
     </header>
     <section className="admin-content">
       <div className="admin-title-row">

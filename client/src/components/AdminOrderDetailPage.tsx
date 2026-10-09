@@ -3,8 +3,9 @@ import * as adminApi from '../api/admin';
 import type { AdminOrderDetail } from '../api/admin';
 import { useAuth } from '../context/AuthContext';
 
+import { SignOutButton } from './SignOutDialog';
 export function AdminOrderDetailPage({ orderId, onBack, onDashboard, onMovies, onUsers, onViewMovie }: { orderId: string; onBack(): void; onDashboard(): void; onMovies(): void; onUsers(): void; onViewMovie(movieId: string): void }) {
-  const { token, user, logout } = useAuth();
+  const { token, user } = useAuth();
   const [detail, setDetail] = useState<AdminOrderDetail | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ export function AdminOrderDetailPage({ orderId, onBack, onDashboard, onMovies, o
         <button className="active" type="button" onClick={onBack}>Orders</button>
         <button type="button" onClick={onUsers}>Users</button>
       </nav>
-      <div className="admin-user"><span>{user?.name}</span><button type="button" onClick={logout}>Sign out</button></div>
+      <div className="admin-user"><span>{user?.name}</span><SignOutButton /></div>
     </header>
     <section className="admin-content">
       <nav className="breadcrumb" aria-label="Breadcrumb">

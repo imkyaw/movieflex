@@ -4,9 +4,10 @@ import type { Movie } from '../api/movies';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { MovieDetailModal } from './MovieDetailModal';
+import { UserMenu } from './UserMenu';
 
 export function CatalogPage({ onSignIn, onAdmin, onCart, onProfile }: { onSignIn(): void; onAdmin(): void; onCart(): void; onProfile(): void }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { count, addItem } = useCart();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
@@ -43,8 +44,8 @@ export function CatalogPage({ onSignIn, onAdmin, onCart, onProfile }: { onSignIn
       <div className="search-box"><span>⌕</span><input aria-label="Search movies" placeholder="Search movies, directors, genres…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} /></div>
       <div className="header-actions">
         {user?.role === 'ADMIN' && <button className="secondary-button" type="button" onClick={onAdmin}>Admin</button>}
-        <button className="secondary-button cart-button" type="button" onClick={onCart} title="Cart">Cart{count > 0 && <span className="cart-badge">{count}</span>}</button>
-        {user ? <><button className="secondary-button" type="button" onClick={onProfile}>{user.name}</button><button className="avatar-button" type="button" onClick={logout} title="Sign out">{user.name.charAt(0).toUpperCase()}</button></> : <button className="primary-button compact" type="button" onClick={onSignIn}>Sign in</button>}
+        <button className="icon-button cart-button" type="button" onClick={onCart} title="Cart" aria-label={count > 0 ? `Cart, ${count} items` : 'Cart'}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4" /><circle cx="18" cy="20" r="1.4" /><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.5L21.5 7H6" /></svg>{count > 0 && <span className="cart-badge">{count}</span>}</button>
+        {user ? <UserMenu onProfile={onProfile} /> : <button className="primary-button compact" type="button" onClick={onSignIn}>Sign in</button>}
       </div>
     </header>
     <nav className="genre-bar" aria-label="Movie genres">

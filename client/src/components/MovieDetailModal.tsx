@@ -9,6 +9,12 @@ function stars(rating: number) {
   return '★★★★★'.slice(0, rounded) + '☆☆☆☆☆'.slice(rounded);
 }
 
+function duration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours > 0 ? `${hours}h ${rest}min` : `${rest}min`;
+}
+
 function StarPicker({ value, onChange }: { value: number; onChange(rating: number): void }) {
   return <div className="star-picker" role="radiogroup" aria-label="Your rating">
     {[1, 2, 3, 4, 5].map((star) => (
@@ -100,28 +106,38 @@ export function MovieDetailModal({ movie, onClose, onAddToCart }: { movie: Movie
   return <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={movie.title} onClick={onClose}>
     <div className="movie-modal" onClick={(event) => event.stopPropagation()}>
       <button className="modal-close" type="button" onClick={onClose} aria-label="Close">×</button>
-      <div className="modal-poster">{movie.posterUrl ? <img src={movie.posterUrl} alt={`${movie.title} poster`} /> : <span>▧</span>}</div>
-      <div className="modal-body">
-        <h2>{movie.title}</h2>
-        <p className="modal-meta">{movie.releaseDate.slice(0, 4)} · {movie.classification} · {movie.runtimeMinutes} min · {movie.genre}</p>
-        <p className="modal-director">Directed by {movie.director}</p>
-        <p className="modal-description">{movie.description}</p>
-        <div className="modal-footer">
-          <div>
-            <strong className="modal-price">${(movie.priceCents / 100).toFixed(2)}</strong>
-            <span className={outOfStock ? 'stock zero' : 'stock'}>{outOfStock ? 'Out of stock' : `${movie.stock} in stock`}</span>
+      <div className="modal-main">
+        <div className="modal-poster">{movie.posterUrl ? <img src={movie.posterUrl} alt={`${movie.title} poster`} /> : <span>▧</span>}</div>
+        <div className="modal-info">
+          <h2>{movie.title}</h2>
+          {reviewMeta.count > 0 && <p className="modal-rating"><span className="stars">{stars(reviewMeta.average)}</span> <strong>{reviewMeta.average.toFixed(1)}</strong> <span>· {reviewMeta.count} review{reviewMeta.count === 1 ? '' : 's'}</span></p>}
+          <div className="modal-buy">
+            <div className="modal-price-block">
+              <strong className="modal-price">${(movie.priceCents / 100).toFixed(2)}</strong>
+              <span className={outOfStock ? 'stock zero' : 'stock'}>{outOfStock ? 'Out of stock' : `${movie.stock} in stock`}</span>
+            </div>
+            {!outOfStock && <div className="qty-stepper">
+              <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} disabled={quantity <= 1}>−</button>
+              <span>{quantity}</span>
+              <button type="button" onClick={() => setQuantity((q) => Math.min(movie.stock, q + 1))} disabled={quantity >= movie.stock}>+</button>
+            </div>}
+            <button className="primary-button" type="button" disabled={outOfStock || addingToCart} onClick={handleAddToCart}>
+              {outOfStock ? 'Out of stock' : addingToCart ? 'Adding…' : user ? 'Add to Cart' : 'Sign in to add to cart'}
+            </button>
           </div>
-          {!outOfStock && <div className="qty-stepper">
-            <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} disabled={quantity <= 1}>−</button>
-            <span>{quantity}</span>
-            <button type="button" onClick={() => setQuantity((q) => Math.min(movie.stock, q + 1))} disabled={quantity >= movie.stock}>+</button>
-          </div>}
+          {cartError && <div className="form-error">{cartError}</div>}
+          <h3 className="modal-label">Storyline</h3>
+          <p className="modal-description">{movie.description}</p>
+          <dl className="modal-facts">
+            <dt>Rating</dt><dd>{movie.classification}</dd>
+            <dt>Release year</dt><dd>{movie.releaseDate.slice(0, 4)}</dd>
+            <dt>Genre</dt><dd>{movie.genre}</dd>
+            <dt>Director</dt><dd>{movie.director}</dd>
+            <dt>Duration</dt><dd>{duration(movie.runtimeMinutes)}</dd>
+          </dl>
         </div>
-        {cartError && <div className="form-error">{cartError}</div>}
-        <button className="primary-button" type="button" disabled={outOfStock || addingToCart} onClick={handleAddToCart}>
-          {outOfStock ? 'Out of stock' : addingToCart ? 'Adding…' : user ? 'Add to Cart' : 'Sign in to add to cart'}
-        </button>
-
+      </div>
+      <div className="modal-body">
         <section className="reviews-section">
           <div className="reviews-heading">
             <h3>Reviews</h3>
